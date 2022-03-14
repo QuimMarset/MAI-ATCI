@@ -2,7 +2,7 @@ import numpy as np
 from collections import deque
 
 
-class ReplayBuffer():
+class ReplayBuffer:
 
     def __init__(self, buffer_size):
         self.buffer_size = int(buffer_size)

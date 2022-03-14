@@ -1,16 +1,25 @@
 import numpy as np
-from numpy import random
-from algorithms.PPO.PPO_model import DiscretePPOModel, ContinuousPPOModel
-from algorithms.PPO.PPO_buffer import DiscretePPOBuffer, ContinuousPPOBuffer
-from constants.constants_ppo import MAX_KL_DIVERG
+from PPO.PPO_model import PPOModel
+from PPO.PPO_buffer import PPOBuffer
 
-class __PPOAgent:
+class PPOAgent:
 
-    def __init__(self, epochs):
+    def __init__(self, state_shape, action_space, buffer_size, num_envs, gamma, gae_lambda, epsilon, epochs, 
+        learning_rate, gradient_clipping, max_kl_diverg):
+
         self.epochs = epochs
+        self.buffer = PPOBuffer(buffer_size, num_envs, state_shape, action_space[0], gamma, gae_lambda)
+        self.model = PPOModel(state_shape, action_space, epsilon, learning_rate, gradient_clipping, max_kl_diverg)
         self.last_values = None
         self.last_actions = None
         self.last_actions_log_prob = None
+
+    
+    @classmethod
+    def test(cls, path, action_size, min_action, max_action):
+        agent = cls.__new__(cls)
+        agent.model = PPOModel.test(path, action_size, min_action, max_action)
+        return agent
 
 
     def step(self, states):
@@ -33,7 +42,6 @@ class __PPOAgent:
         num_batches = int(np.ceil(num_transitions/batch_size))
 
         annealing_fraction = 1 - current_iteration/total_iterations
-
         self.model.apply_annealing(annealing_fraction) 
 
         for _ in range(self.epochs):
@@ -53,31 +61,10 @@ class __PPOAgent:
         return {'Actor Loss': actor_loss.numpy(), 'Critic Loss': critic_loss.numpy(), 
             'KL Divergence': kl_divergence.numpy(), 'Learning Rate': learning_rate}
 
-    def reset_buffer(self):
-        self.buffer.reset_buffer()
 
-    def load_models(self, path):
+    def load_model(self, path):
         self.model.load_models(path)
+
 
     def save_models(self, path):
         self.model.save_models(path)
-
-
-class DiscretePPOAgent(__PPOAgent):
-
-    def __init__(self, state_shape, num_actions, buffer_size, num_envs, gamma, gae_lambda, epsilon, epochs, 
-        learning_rate, gradient_clipping, max_kl_diverg):
-
-        super().__init__(epochs)
-        self.buffer = DiscretePPOBuffer(buffer_size, num_envs, state_shape, gamma, gae_lambda)
-        self.model = DiscretePPOModel(state_shape, num_actions, epsilon, learning_rate, gradient_clipping, max_kl_diverg)
-
-
-class ContinuousPPOAgent(__PPOAgent):
-
-    def __init__(self, state_shape, action_space, buffer_size, num_envs, gamma, gae_lambda, epsilon, epochs, 
-        learning_rate, gradient_clipping, max_kl_diverg):
-
-        super().__init__(epochs)
-        self.buffer = ContinuousPPOBuffer(buffer_size, num_envs, state_shape, action_space.shape[0], gamma, gae_lambda)
-        self.model = ContinuousPPOModel(state_shape, action_space, epsilon, learning_rate, gradient_clipping, max_kl_diverg)

@@ -1,8 +1,9 @@
 import numpy as np
 
-class __PPOBuffer:
 
-    def __init__(self, buffer_size, num_envs, state_shape, gamma, gae_lambda):
+class PPOBuffer:
+
+    def __init__(self, buffer_size, num_envs, state_shape, action_size, gamma, gae_lambda):
         self.state_shape = state_shape
         self.gamma = gamma
         self.gae_lambda = gae_lambda
@@ -10,6 +11,7 @@ class __PPOBuffer:
         self.buffer_size = buffer_size
 
         self.states = np.zeros((num_envs, buffer_size, *self.state_shape))
+        self.actions = np.zeros((num_envs, buffer_size, action_size))
         self.rewards = np.zeros((num_envs, buffer_size))
         self.terminals = np.zeros((num_envs, buffer_size), dtype=int)
         self.values = np.zeros((num_envs, buffer_size))
@@ -55,10 +57,6 @@ class __PPOBuffer:
         return self.states.shape[1]
 
 
-    def get_last_next_states(self):
-        return self.next_states[:, -1]
-
-
     def get_transitions(self, bootstrapped_values):
         states = np.reshape(self.states, (-1, *self.state_shape))
         actions = np.reshape(self.actions, (-1, *self.actions.shape[2:]))
@@ -67,17 +65,3 @@ class __PPOBuffer:
         action_log_probs = np.reshape(self.actions_log_prob, (-1))
         values = np.reshape(self.values, (-1))
         return states, actions, returns, advantages, action_log_probs, values
-
-
-class DiscretePPOBuffer(__PPOBuffer):
-
-    def __init__(self, buffer_size, num_envs, state_shape, gamma, gae_lambda):
-        super().__init__(buffer_size, num_envs, state_shape, gamma, gae_lambda)
-        self.actions = np.zeros((num_envs, buffer_size), dtype=int)
-
-
-class ContinuousPPOBuffer(__PPOBuffer):
-
-    def __init__(self, buffer_size, num_envs, state_shape, action_size, gamma, gae_lambda):
-        super().__init__(buffer_size, num_envs, state_shape, gamma, gae_lambda)
-        self.actions = np.zeros((num_envs, buffer_size, action_size))
