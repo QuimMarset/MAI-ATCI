@@ -16,9 +16,9 @@ class PPOAgent:
 
     
     @classmethod
-    def test(cls, path, action_size, min_action, max_action):
+    def test(cls, path, state_size, action_space):
         agent = cls.__new__(cls)
-        agent.model = PPOModel.test(path, action_size, min_action, max_action)
+        agent.model = PPOModel.test(path, state_size, action_space)
         return agent
 
 
