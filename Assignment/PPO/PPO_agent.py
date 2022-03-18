@@ -9,7 +9,7 @@ class PPOAgent:
 
         self.epochs = epochs
         self.buffer = PPOBuffer(buffer_size, num_envs, state_shape, action_space[0], gamma, gae_lambda)
-        self.model = PPOModel(state_shape, action_space, epsilon, learning_rate, gradient_clipping, max_kl_diverg)
+        self.model = PPOModel(learning_rate, gradient_clipping, state_shape, action_space, epsilon, max_kl_diverg)
         self.last_values = None
         self.last_actions = None
         self.last_actions_log_prob = None
@@ -54,12 +54,11 @@ class PPOAgent:
                 end_index = start_index+batch_size if start_index+batch_size < num_transitions else num_transitions
                 indices_batch = indices[start_index:end_index]
 
-                actor_loss, critic_loss, kl_divergence, learning_rate = self.model.update_model(states[indices_batch], 
+                actor_loss, critic_loss, kl_divergence = self.model.update_models(states[indices_batch], 
                     actions[indices_batch], advantages[indices_batch], returns[indices_batch], 
                     actions_log_prob[indices_batch], values[indices_batch])
 
-        return {'Actor Loss': actor_loss.numpy(), 'Critic Loss': critic_loss.numpy(), 
-            'KL Divergence': kl_divergence.numpy(), 'Learning Rate': learning_rate}
+        return {'actor_loss': actor_loss, 'critic_loss': critic_loss, 'kl_divergence': kl_divergence}
 
 
     def load_model(self, path):

@@ -1,6 +1,6 @@
 from utils.utils import exists_folder, create_folder, user_input
 from constants.constants import RESULTS_PATH, WEIGHTS_PATH
-from utils.run import train_agent, test_agent
+from utils.run_PPO import train_agent, test_agent
 
 
 if __name__ == "__main__":

@@ -59,9 +59,9 @@ def train_agent():
     action_space = env.get_action_space()
     action_space_info = (action_space.shape, action_space.low, action_space.high)
     
-    agent = SACAgent(LEARNING_RATE, GRADIENT_CLIPPING, state_shape, action_space_info, BUFFER_SIZE, GAMMA, TAU, ALPHA)
+    agent = SACAgent(LEARNING_RATE, GRADIENT_CLIPPING, state_shape, action_space_info, SAC_BUFFER_SIZE, GAMMA, TAU, ALPHA)
 
-    total_steps = EPOCHS * STEPS_PER_EPOCH
+    total_steps = SAC_EPOCHS * STEPS_PER_EPOCH
     episode_index = 0
     best_avg_reward = -100000
 

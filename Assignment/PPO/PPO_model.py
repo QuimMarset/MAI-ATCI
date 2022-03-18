@@ -10,6 +10,7 @@ class PPOModel:
     def __init__(self, learning_rate, gradient_clipping, state_shape, action_space, epsilon, max_kl_diverg):
         self.max_kl_diverg = max_kl_diverg
         self.epsilon = epsilon
+        self.original_epsilon = epsilon
         (action_size, min_action, max_action) = action_space
         self.actor = Actor(learning_rate, gradient_clipping, state_shape, action_size, min_action, max_action)
         self.critic = Critic(learning_rate, gradient_clipping, state_shape)
@@ -26,12 +27,9 @@ class PPOModel:
 
 
     def forward(self, states):
-        actions, actions_log_prob, state_values = self.model(states)
+        actions, actions_log_prob = self.actor(states)
+        state_values = self.critic(states)
         return actions.numpy(), actions_log_prob.numpy(), state_values.numpy()
-
-    
-    def get_actions_log_prob(self, states, actions):
-        return self.model.get_actions_log_probs(states, actions)
 
 
     def apply_annealing(self, annealing_fraction):
@@ -53,12 +51,12 @@ class PPOModel:
             actor_loss = tf.where(tf.abs(kl_diverg) > self.max_kl_diverg, 
                 tf.stop_gradient(actor_loss), actor_loss)
 
-        return actor_loss
+        return actor_loss, kl_diverg
 
 
     def compute_critic_loss(self, tape, states, returns, old_values):
         with tape:
-            state_values = self.critic.call_update(states)
+            state_values = self.critic(states)
             state_values_clipped = old_values + tf.clip_by_value(state_values - old_values, -self.epsilon, self.epsilon)
             critic_loss_unclipped = (returns - state_values)**2
             critic_loss_clipped = (returns - state_values_clipped)**2

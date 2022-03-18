@@ -10,6 +10,7 @@ class EnvironmentWrapper(Process):
         self.env_index = env_index
         self.pipe_end = pipe_end
 
+
     def run(self):
         super().run()
         state = self.env.start()
@@ -44,22 +45,26 @@ class MultiEnvironmentManager:
 
             self.configure_spaces(env_function, **env_params) 
 
+
     def configure_spaces(self, env_function, **env_params):
         temp_env = env_function(**env_params)
         self.state_shape = temp_env.get_state_shape()
         self.action_space = temp_env.get_action_space()
         temp_env.end()
 
+
     def end(self):
         for env in self.envs:
             env.terminate()
             env.join()
+
 
     def start(self):
         states = np.zeros((self.num_envs, *self.state_shape))
         for i in range(len(self.pipes_main)):
             states[i] = self.pipes_main[i].recv()
         return states
+
 
     def step(self, actions):
         for pipe_main, action in zip(self.pipes_main, actions):
@@ -77,8 +82,14 @@ class MultiEnvironmentManager:
 
         return next_states, rewards, terminals
 
+
     def get_state_shape(self):
         return self.state_shape
 
+
     def get_action_space(self):
         return self.action_space
+
+
+    def get_num_envs(self):
+        return self.num_envs

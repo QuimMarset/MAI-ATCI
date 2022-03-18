@@ -12,7 +12,7 @@ class Actor:
         self.gradient_clipping = gradient_clipping
         self.min_action = min_action
         self.max_action = max_action
-        self._create_model(state_shape, action_size)
+        self.create_model(state_shape, action_size)
 
 
     @classmethod
@@ -59,13 +59,14 @@ class Actor:
 
 
     def __call__(self, states):
-        _, actions, _ = self.compute_actions(states)
-        return actions
-
-
-    def call_update(self, states):
         _, actions, log_prob_actions = self.compute_actions(states)
         return actions, log_prob_actions
+
+
+    def call_update(self, states, actions):
+        mus, log_stds = self.model(states)
+        log_prob_actions = self.gaussian_log_likelihood(actions, mus, log_stds)
+        return log_prob_actions
 
 
     def call_test(self, states):
@@ -128,8 +129,9 @@ class Critic:
         self.model = keras.Model(state_input, v_value)
 
 
-    def __call__(self, states, actions):
-        return self.model([states, actions])
+    def __call__(self, states):
+        state_values = self.model(states)
+        return tf.squeeze(state_values, axis=-1)
 
 
     def update(self, gradients):

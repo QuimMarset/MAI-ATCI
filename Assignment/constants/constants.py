@@ -17,7 +17,7 @@ ALGORITHM = "SAC"
 # =======================
 
 # Multi-environment training in PPO
-NUM_ENVS = 6
+NUM_ENVS = 1
 
 # =======================
 # Agent constants

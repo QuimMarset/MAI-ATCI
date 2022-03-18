@@ -27,8 +27,7 @@ class TrainResults:
     def add_metrics_info(self, train_metrics):
         if train_metrics:
             self.experiments_actor_loss[self.current_experiment].append(train_metrics['actor_loss'])
-            self.experiments_critic_1_loss[self.current_experiment].append(train_metrics['critic_1_loss'])
-            self.experiments_critic_2_loss[self.current_experiment].append(train_metrics['critic_2_loss'])
+            self.experiments_critic_loss[self.current_experiment].append(train_metrics['critic_loss'])
 
 
     def _plot_rewards_results(self):
@@ -66,8 +65,7 @@ class TrainResults:
     def plot_results(self):
         self._plot_rewards_results()
         self._plot_losses_results(self.experiments_actor_loss, 'Actor', 'actor')
-        self._plot_losses_results(self.experiments_critic_1_loss, 'Critic 1', 'critic_1')
-        self._plot_losses_results(self.experiments_critic_2_loss, 'Critic 2', 'critic_2')
+        self._plot_losses_results(self.experiments_critic_loss, 'Critic', 'critic')
 
 
     def get_last_100_avg_reward(self):

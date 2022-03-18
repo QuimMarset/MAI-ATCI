@@ -6,21 +6,21 @@ from constants.constants import *
 from PPO.PPO_agent import PPOAgent
 
 
-def train_experiment(env, agent, results_plotter, iterations, iteration_steps, best_avg_reward):
+def train_experiment(env, agent, results_plotter, iterations, iteration_steps, episode_index, best_avg_reward):
     states = env.start()
     done = False
     episode_rewards = np.zeros(env.get_num_envs())
 
-    for iteration in iterations:
+    for iteration in range(iterations):
 
-        for step in iteration_steps:
+        for _ in range(iteration_steps):
 
             actions = agent.step(states)
             next_states, rewards, dones = env.step(actions)
 
             episode_rewards[:] += rewards
 
-            agent.store_transitions(states, actions, rewards, dones, next_states)
+            agent.store_transitions(states, rewards, dones)
 
             states = next_states
 
@@ -29,15 +29,16 @@ def train_experiment(env, agent, results_plotter, iterations, iteration_steps, b
                 if done:
                     
                     episode_reward = episode_rewards[index]
-                    last_100_average = results_plotter.get_last_100_avg_reward()
-                    
-                    print(f'Iteration {iteration}/{iterations}: Env {index}, Reward: {episode_reward},' + 
-                        f' Last 100 Average: {last_100_average:.2f}')
-
-                    results_plotter.end_episode(index, episode_reward)
 
                     results_plotter.add_episode_info(episode_reward)
                     results_plotter.plot_results()
+
+                    last_100_average = results_plotter.get_last_100_avg_reward()
+                    
+                    print(f'Iteration {iteration}/{iterations}: Episode {episode_index}, Env {index}, Reward: {episode_reward},' + 
+                        f' Last 100 Average: {last_100_average:.2f}')
+
+                    episode_index += 1
 
                     if iteration > 0 and iteration%100 == 0:
                         if last_100_average >= best_avg_reward:
@@ -49,7 +50,7 @@ def train_experiment(env, agent, results_plotter, iterations, iteration_steps, b
         train_metrics = agent.train(BATCH_SIZE, states, iteration, iterations)
         results_plotter.add_metrics_info(train_metrics)
 
-    return best_avg_reward
+    return best_avg_reward, episode_index
 
 
 def train_agent():
@@ -62,12 +63,13 @@ def train_agent():
         LEARNING_RATE, GRADIENT_CLIPPING, MAX_KL_DIVERG)
 
     best_avg_reward = -100000
+    episode_index = 0
 
     results_plotter = TrainResults(TRAIN_EXPERIMENTS)
 
     for _ in range(TRAIN_EXPERIMENTS):
 
-        episode_index, best_avg_reward = train_experiment(envs, agent, results_plotter, ITERATIONS, ITERATION_STEPS, 
+        best_avg_reward, episode_index = train_experiment(envs, agent, results_plotter, ITERATIONS, ITERATION_STEPS, 
             episode_index, best_avg_reward)
         results_plotter.end_experiment()
 
