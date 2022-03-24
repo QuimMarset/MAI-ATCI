@@ -6,7 +6,7 @@ from constants.constants import *
 from PPO.PPO_agent import PPOAgent
 
 
-def train_experiment(env, agent, results_plotter, iterations, iteration_steps, episode_index, best_avg_reward):
+def train_experiment(env: MultiEnvironmentManager, agent: PPOAgent, results_plotter: TrainResults, iterations, iteration_steps, episode_index, best_avg_reward):
     states = env.start()
     done = False
     episode_rewards = np.zeros(env.get_num_envs())
@@ -43,7 +43,7 @@ def train_experiment(env, agent, results_plotter, iterations, iteration_steps, e
                     if iteration > 0 and iteration%100 == 0:
                         if last_100_average >= best_avg_reward:
                             best_avg_reward = last_100_average
-                            agent.save_models_weights(WEIGHTS_PATH)
+                            agent.save_models(WEIGHTS_PATH)
                     
                     episode_rewards[index] = 0
         
@@ -107,11 +107,3 @@ def test_agent(render=True, env=None, agent=None, test_episodes=TEST_EPISODES):
     env.end()
 
     return avg_reward
-
-
-"""if episode > 0 and episode%300:
-    avg_test_episode_reward = test_agent(False, env, agent, 10)
-
-    if avg_test_episode_reward > SOLVE_CONDITON/2:
-        avg_test_episode_reward = test_agent(False, env, agent, 100)
-        if avg_test_episode_reward >= SOLVE_CONDITION:"""

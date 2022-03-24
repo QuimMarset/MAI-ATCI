@@ -9,15 +9,16 @@ WEIGHTS_PATH = './weights/'
 # Names constants
 # =======================
 
-ENVIRONMENT = "BipedalWalker-v3"
-ALGORITHM = "SAC"
+ENVIRONMENT = "MountainCarContinuous-v0"
+SAC_NAME = "SAC"
+PPO_NAME = "PPO"
 
 # =======================
 # Environment constants
 # =======================
 
 # Multi-environment training in PPO
-NUM_ENVS = 1
+NUM_ENVS = 5
 
 # =======================
 # Agent constants
@@ -29,7 +30,7 @@ GAMMA = 0.99
 
 # PPO
 
-PPO_BUFFER_SIZE = 2000
+PPO_BUFFER_SIZE = 512
 
 # Generalized advantage estimator
 GAE_LAMBDA = 0.95
@@ -50,11 +51,14 @@ TAU = 0.005
 # Train constants
 # =======================
 
+TRAIN_EXPERIMENTS = 1
+BATCH_SIZE = 256
+
 # PPO
 
 PPO_EPOCHS = 10
-ITERATIONS = 1000
-ITERATION_STEPS = 256
+ITERATIONS = 10000
+ITERATION_STEPS = PPO_BUFFER_SIZE
 
 # SAC
 
@@ -62,9 +66,8 @@ SAC_EPOCHS = 10000
 STEPS_PER_EPOCH = 5000
 
 SAMPLING_STEPS = 10000
-
-TRAIN_EXPERIMENTS = 1
-BATCH_SIZE = 32
+UPDATE_EVERY = 50
+START_UPDATING = 1000
 
 # =======================
 # Test constants

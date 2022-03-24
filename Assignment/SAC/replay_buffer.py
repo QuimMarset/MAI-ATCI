@@ -14,7 +14,7 @@ class ReplayBuffer:
 
 
     def get_transitions(self, batch_size):
-        indices = np.random.choice(np.arange(len(self.buffer)), batch_size, replace = False)
+        indices = np.random.choice(len(self.buffer), batch_size, replace=False)
         sampled_transitions = [self.buffer[index] for index in indices]
         states, actions, rewards, terminals, next_states = map(list, zip(*sampled_transitions))
 

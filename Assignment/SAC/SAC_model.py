@@ -66,19 +66,19 @@ class SACModel:
         return loss
 
 
-    def _compute_target_critic_update(self, tape, rewards, terminals, next_states):
-        with tape:
-            next_actions, next_actions_log_prob = self.actor.call_update(next_states)
-            
-            q1_target_values = tf.squeeze(self.target_1(next_states, next_actions), axis = -1)
-            q2_target_values = tf.squeeze(self.target_2(next_states, next_actions), axis = -1)
-            q_target_values = tf.minimum(q1_target_values, q2_target_values)
-            
-            target = rewards + self.gamma*(1 - terminals)*(q_target_values - self.alpha*next_actions_log_prob)
+    def _compute_target_critic_update(self, rewards, terminals, next_states):
+        next_actions, next_actions_log_prob = self.actor.call_update(next_states)
+        
+        q1_target_values = tf.squeeze(self.target_1(next_states, next_actions), axis = -1)
+        q2_target_values = tf.squeeze(self.target_2(next_states, next_actions), axis = -1)
+        q_target_values = tf.minimum(q1_target_values, q2_target_values)
+        
+        target = rewards + self.gamma*(1 - terminals)*(q_target_values - self.alpha*next_actions_log_prob)
         return target
 
 
-    def _update_critic(self, critic, tape, states, actions, target):
+    def _update_critic(self, critic, states, actions, target):
+        tape = tf.GradientTape()
         loss = self._compute_critic_loss(critic, tape, states, actions, target)
         trainable_variables = critic.trainable_variables()
         gradients = tape.gradient(loss, trainable_variables)
@@ -116,10 +116,9 @@ class SACModel:
 
 
     def update_critics(self, states, actions, rewards, terminals, next_states):
-        tape = tf.GradientTape(persistent = True)
-        target = self._compute_target_critic_update(tape, rewards, terminals, next_states)
-        loss_1 = self._update_critic(self.critic_1, tape, states, actions, target)
-        loss_2 = self._update_critic(self.critic_2, tape, states, actions, target)
+        target = self._compute_target_critic_update(rewards, terminals, next_states)
+        loss_1 = self._update_critic(self.critic_1, states, actions, target)
+        loss_2 = self._update_critic(self.critic_2, states, actions, target)
         return loss_1, loss_2
 
 

@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import deque
-from constants.constants import ALGORITHM, ENVIRONMENT, RESULTS_PATH
+from constants.constants import ENVIRONMENT, RESULTS_PATH, SAC_NAME
 
 
 class TrainResults:
@@ -19,16 +19,16 @@ class TrainResults:
         self.experiments_critic_2_loss = [[] for _ in range(num_experiments)]
 
 
-    def add_episode_info(self, episode_reward, train_metrics):
+    def add_episode_info(self, episode_reward):
         self.last_episodes_reward.append(episode_reward)
         self.experiments_avg_reward[self.current_experiment].append(np.mean(self.last_episodes_reward))
-
-        if train_metrics:
-            self.experiments_actor_loss[self.current_experiment].append(train_metrics['actor_loss'])
-            self.experiments_critic_1_loss[self.current_experiment].append(train_metrics['critic_1_loss'])
-            self.experiments_critic_2_loss[self.current_experiment].append(train_metrics['critic_2_loss'])
-
         self.num_episodes += 1
+
+
+    def add_train_info(self, train_metrics):
+        self.experiments_actor_loss[self.current_experiment].append(train_metrics['actor_loss'])
+        self.experiments_critic_1_loss[self.current_experiment].append(train_metrics['critic_1_loss'])
+        self.experiments_critic_2_loss[self.current_experiment].append(train_metrics['critic_2_loss'])
     
 
     def _plot_rewards_results(self):
@@ -38,7 +38,7 @@ class TrainResults:
         plt.figure(figsize=(7, 5))
         plt.plot(means, label='mean')
         plt.fill_between(range(means.shape[0]), means-stds, means+stds, alpha=0.3, label='mean+-std')
-        plt.title(f'Last 100 episodes average reward on {ENVIRONMENT} using {ALGORITHM}')
+        plt.title(f'Last 100 episodes average reward on {ENVIRONMENT} using {SAC_NAME}')
         plt.xlabel('Episode')
         plt.ylabel('Episode Reward')
         plt.legend()
@@ -54,7 +54,7 @@ class TrainResults:
         plt.figure(figsize=(7, 5))
         plt.plot(means, label='mean')
         plt.fill_between(range(means.shape[0]), means-stds, means+stds, alpha=0.3, label='mean+-std')
-        plt.title(f'{model_title_name} loss evolution on {ENVIRONMENT} using {ALGORITHM}')
+        plt.title(f'{model_title_name} loss evolution on {ENVIRONMENT} using {SAC_NAME}')
         plt.xlabel('Episode')
         plt.ylabel(f'{model_title_name} Loss')
         plt.legend()

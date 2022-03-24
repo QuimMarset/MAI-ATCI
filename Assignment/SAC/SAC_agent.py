@@ -8,6 +8,7 @@ class SACAgent:
         self.buffer = ReplayBuffer(buffer_size)
         self.model = SACModel(learning_rate, gradient_clipping, state_shape, action_space_info, gamma, tau, alpha)
 
+
     @classmethod
     def test(cls, path, action_size, min_action, max_action):
         agent = cls.__new__(cls)

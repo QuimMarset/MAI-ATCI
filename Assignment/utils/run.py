@@ -5,7 +5,7 @@ from constants.constants import *
 from SAC.SAC_agent import SACAgent
 
 
-def train_experiment(env, agent, results_plotter, experiment_steps, episode_index, best_avg_reward):
+def train_experiment(env: Environment, agent: SACAgent, results_plotter: TrainResults, experiment_steps, episode_index, best_avg_reward):
     state = env.start()
     done = False
     episode_length = 0
@@ -30,21 +30,18 @@ def train_experiment(env, agent, results_plotter, experiment_steps, episode_inde
             state = env.start()
             episode_index += 1
             print(f'Episode {episode_index} ended with {episode_length} steps and reward {episode_reward:.2f}')
-
-            train_metrics = {}
-            
-            if step > SAMPLING_STEPS:
-                for _ in range(100):
-                    train_metrics = agent.train(BATCH_SIZE)
-
-            results_plotter.add_episode_info(episode_reward, train_metrics)
-            results_plotter.plot_results()
-
+            results_plotter.add_episode_info(episode_reward)
             episode_reward = 0
             episode_length = 0
-            done = False
+
+        if step >= START_UPDATING and step%UPDATE_EVERY == 0:
+            train_metrics = {}
+            train_metrics = agent.train(BATCH_SIZE)
+            results_plotter.add_train_info(train_metrics)
 
         if step > 0 and step%STEPS_PER_EPOCH == 0:
+            results_plotter.plot_results()
+
             last_100_avg_reward = results_plotter.get_last_100_avg_reward()
             if last_100_avg_reward >= best_avg_reward:
                 best_avg_reward = last_100_avg_reward

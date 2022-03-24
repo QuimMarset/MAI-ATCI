@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import deque
-from constants.constants import ALGORITHM, ENVIRONMENT, RESULTS_PATH
+from constants.constants import ENVIRONMENT, PPO_NAME, RESULTS_PATH
 
 
 class TrainResults:
@@ -37,7 +37,7 @@ class TrainResults:
         plt.figure(figsize=(7, 5))
         plt.plot(means, label='mean')
         plt.fill_between(range(means.shape[0]), means-stds, means+stds, alpha=0.3, label='mean+-std')
-        plt.title(f'Last 100 episodes average reward on {ENVIRONMENT} using {ALGORITHM}')
+        plt.title(f'Last 100 episodes average reward on {ENVIRONMENT} using {PPO_NAME}')
         plt.xlabel('Episode')
         plt.ylabel('Episode Reward')
         plt.legend()
@@ -53,7 +53,7 @@ class TrainResults:
         plt.figure(figsize=(7, 5))
         plt.plot(means, label='mean')
         plt.fill_between(range(means.shape[0]), means-stds, means+stds, alpha=0.3, label='mean+-std')
-        plt.title(f'{model_title_name} loss evolution on {ENVIRONMENT} using {ALGORITHM}')
+        plt.title(f'{model_title_name} loss evolution on {ENVIRONMENT} using {PPO_NAME}')
         plt.xlabel('Episode')
         plt.ylabel(f'{model_title_name} Loss')
         plt.legend()

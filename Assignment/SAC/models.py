@@ -27,7 +27,7 @@ class Actor:
         dense_1_out = keras.layers.Dense(units = 128, activation = 'relu')(state_input)
         dense_2_out = keras.layers.Dense(units = 256, activation = 'relu')(dense_1_out)
         mean = keras.layers.Dense(units = action_size, activation = 'linear')(dense_2_out)
-        log_std = keras.layers.Dense(units = action_size, activation = 'tanh')(dense_2_out)
+        log_std = keras.layers.Dense(units = action_size, activation = 'linear')(dense_2_out)
 
         self.model = keras.Model(state_input, [mean, log_std])
 
