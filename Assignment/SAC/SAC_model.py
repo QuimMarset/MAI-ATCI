@@ -128,16 +128,16 @@ class SACModel:
 
 
     def load_weights(self, path):
-        self.actor.load_weights(f'{path}/actor_weights')
-        self.critic_1.load_weights(f'{path}/critic_1_weights')
-        self.critic_2.load_weights(f'{path}/critic_2_weights')
-        self.target_1.load_weights(f'{path}/target_1_weights')
-        self.target_2.load_weights(f'{path}/target_2_weights')
+        self.actor.load_weights(f'{path}actor_weights')
+        self.critic_1.load_weights(f'{path}critic_1_weights')
+        self.critic_2.load_weights(f'{path}critic_2_weights')
+        self.target_1.load_weights(f'{path}target_1_weights')
+        self.target_2.load_weights(f'{path}target_2_weights')
 
 
     def save_weights(self, path):
-        self.actor.save_weights(f'{path}/actor_weights')
-        self.critic_1.save_weights(f'{path}/critic_1_weights')
-        self.critic_2.save_weights(f'{path}/critic_2_weights')
-        self.target_1.save_weights(f'{path}/target_1_weights')
-        self.target_2.save_weights(f'{path}/target_2_weights')
+        self.actor.save_weights(f'{path}actor_weights')
+        self.critic_1.save_weights(f'{path}critic_1_weights')
+        self.critic_2.save_weights(f'{path}critic_2_weights')
+        self.target_1.save_weights(f'{path}target_1_weights')
+        self.target_2.save_weights(f'{path}target_2_weights')

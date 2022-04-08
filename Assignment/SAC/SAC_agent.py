@@ -5,7 +5,7 @@ from SAC.SAC_model import SACModel
 class SACAgent:
 
     def __init__(self, learning_rate, gradient_clipping, state_shape, action_space_info, buffer_size, gamma, tau, alpha):
-        self.buffer = ReplayBuffer(buffer_size)
+        self.buffer = ReplayBuffer(buffer_size, state_shape, action_space_info[0])
         self.model = SACModel(learning_rate, gradient_clipping, state_shape, action_space_info, gamma, tau, alpha)
 
 

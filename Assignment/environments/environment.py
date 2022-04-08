@@ -1,11 +1,13 @@
 from constants.constants import ENVIRONMENT
 import gym
+import random
 
 
 class Environment:
 
     def __init__(self, reward_scale=1, render=False):
         self.env = gym.make(ENVIRONMENT)
+        self.env.seed(random.randint(0, 9999))
         self.render = render
         self.reward_scale = reward_scale
 

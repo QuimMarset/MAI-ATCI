@@ -27,9 +27,11 @@ class Actor:
     def create_model(self, state_shape, action_size):
         state_input = keras.Input(state_shape)
         dense_1_out = keras.layers.Dense(units = 128, activation = 'relu')(state_input)
-        dense_2_out = keras.layers.Dense(units = 256, activation = 'relu')(dense_1_out)
-        mean = keras.layers.Dense(units = action_size, activation = 'linear')(dense_2_out)
-        log_std = keras.layers.Dense(units = action_size, activation = 'tanh')(dense_2_out)
+        drop_1 = keras.layers.Dropout(0.3)(dense_1_out)
+        dense_2_out = keras.layers.Dense(units = 256, activation = 'relu')(drop_1)
+        drop_2 = keras.layers.Dropout(0.3)(dense_2_out)
+        mean = keras.layers.Dense(units = action_size, activation = 'linear')(drop_2)
+        log_std = keras.layers.Dense(units = action_size, activation = 'tanh')(drop_2)
 
         self.model = keras.Model(state_input, [mean, log_std])
 
@@ -39,21 +41,16 @@ class Actor:
         pre_sum = -0.5 * (((actions - mus)/(stds + 1e-8))**2 + 2*log_stds + tf.math.log(2*np.pi))
         return tf.reduce_sum(pre_sum, axis=-1)
 
-    
-    def _rescale_actions(self, actions):
-        actions = self.min_action + (actions + 1.0)*(self.max_action - self.min_action)/2.0
-        return actions
-
 
     def compute_actions(self, states):
         mus, log_stds = self.model(states)
         stds = tf.exp(log_stds)
 
         actions = mus + tf.random.normal(mus.shape)*stds
+        actions = tf.clip_by_value(actions, self.min_action, self.max_action)
         log_probs = self.gaussian_log_likelihood(actions, mus, log_stds)
 
-        mus = self._rescale_actions(mus)
-        actions = self._rescale_actions(actions)
+        mus = tf.clip_by_value(mus, self.min_action, self.max_action)
 
         return mus, actions, log_probs
 
@@ -123,8 +120,10 @@ class Critic:
     def create_model(self, state_shape):
         state_input = keras.Input(state_shape)
         dense_1_out = keras.layers.Dense(units = 128, activation = 'relu')(state_input)
-        dense_2_out = keras.layers.Dense(units = 256, activation = 'relu')(dense_1_out)
-        v_value = keras.layers.Dense(units = 1, activation = 'linear')(dense_2_out)
+        drop_1 = keras.layers.Dropout(0.3)(dense_1_out)
+        dense_2_out = keras.layers.Dense(units = 256, activation = 'relu')(drop_1)
+        drop_2 = keras.layers.Dropout(0.3)(dense_2_out)
+        v_value = keras.layers.Dense(units = 1, activation = 'linear')(drop_2)
 
         self.model = keras.Model(state_input, v_value)
 

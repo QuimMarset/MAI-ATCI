@@ -24,7 +24,7 @@ class Actor:
 
     def _create_model(self, state_shape, action_size):
         state_input = keras.Input(state_shape)
-        dense_1_out = keras.layers.Dense(units = 128, activation = 'relu')(state_input)
+        dense_1_out = keras.layers.Dense(units = 256, activation = 'relu')(state_input)
         dense_2_out = keras.layers.Dense(units = 256, activation = 'relu')(dense_1_out)
         mean = keras.layers.Dense(units = action_size, activation = 'linear')(dense_2_out)
         log_std = keras.layers.Dense(units = action_size, activation = 'linear')(dense_2_out)
@@ -46,7 +46,7 @@ class Actor:
     def _invertible_squashing(self, mus, unbounded_actions, log_prob_unbounded_actions):
         bounded_mus = tf.tanh(mus)
         actions = tf.tanh(unbounded_actions)
-        log_prob_actions = log_prob_unbounded_actions - tf.reduce_sum(tf.math.log(1 - tf.tanh(unbounded_actions)**2 + 1e-6))
+        log_prob_actions = log_prob_unbounded_actions - tf.reduce_sum(tf.math.log(1 - actions**2 + 1e-6), axis=-1)
 
         """
         batch_size = unbound_actions.shape[0]
@@ -62,6 +62,7 @@ class Actor:
 
     def _compute_actions(self, states, min_log_std=-20, max_log_std=2):
         [mus, log_stds] = self.model(states)
+
         log_stds = tf.clip_by_value(log_stds, min_log_std, max_log_std)
         stds = tf.exp(log_stds)
 
@@ -133,7 +134,7 @@ class Critic:
         state_input = keras.Input(state_shape)
         action_input = keras.Input(action_shape)
         concat_input = tf.concat([state_input, action_input], axis=-1)
-        dense_1_out = keras.layers.Dense(units = 128, activation = 'relu')(concat_input)
+        dense_1_out = keras.layers.Dense(units = 256, activation = 'relu')(concat_input)
         dense_2_out = keras.layers.Dense(units = 256, activation = 'relu')(dense_1_out)
         q_value = keras.layers.Dense(units = 1, activation = 'linear')(dense_2_out)
 

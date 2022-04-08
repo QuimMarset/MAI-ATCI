@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import deque
-from constants.constants import ENVIRONMENT, RESULTS_PATH, SAC_NAME
+from constants.constants import ENVIRONMENT, RESULTS_SAC, SAC_NAME
 
 
 class TrainResults:
@@ -26,9 +26,10 @@ class TrainResults:
 
 
     def add_train_info(self, train_metrics):
-        self.experiments_actor_loss[self.current_experiment].append(train_metrics['actor_loss'])
-        self.experiments_critic_1_loss[self.current_experiment].append(train_metrics['critic_1_loss'])
-        self.experiments_critic_2_loss[self.current_experiment].append(train_metrics['critic_2_loss'])
+        if train_metrics:
+            self.experiments_actor_loss[self.current_experiment].append(train_metrics['actor_loss'])
+            self.experiments_critic_1_loss[self.current_experiment].append(train_metrics['critic_1_loss'])
+            self.experiments_critic_2_loss[self.current_experiment].append(train_metrics['critic_2_loss'])
     
 
     def _plot_rewards_results(self):
@@ -43,7 +44,7 @@ class TrainResults:
         plt.ylabel('Episode Reward')
         plt.legend()
         plt.tight_layout()
-        plt.savefig(f'{RESULTS_PATH}episode_rewards.png')
+        plt.savefig(f'{RESULTS_SAC}episode_rewards.png')
         plt.close()
 
 
@@ -55,11 +56,11 @@ class TrainResults:
         plt.plot(means, label='mean')
         plt.fill_between(range(means.shape[0]), means-stds, means+stds, alpha=0.3, label='mean+-std')
         plt.title(f'{model_title_name} loss evolution on {ENVIRONMENT} using {SAC_NAME}')
-        plt.xlabel('Episode')
+        plt.xlabel('Step')
         plt.ylabel(f'{model_title_name} Loss')
         plt.legend()
         plt.tight_layout()
-        plt.savefig(f'{RESULTS_PATH}{model_fig_name}_loss.png')
+        plt.savefig(f'{RESULTS_SAC}{model_fig_name}_loss.png')
         plt.close()
 
 

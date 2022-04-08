@@ -1,5 +1,5 @@
 import os
-from constants.constants import PPO_NAME, SAC_NAME
+from constants.constants import PPO_NAME, SAC_NAME, RESULTS_PATH, RESULTS_PPO, RESULTS_SAC, WEIGHTS_PATH, WEIGHTS_PPO, WEIGHTS_SAC
 
 
 def user_input_mode():
@@ -36,3 +36,15 @@ def create_folder(path):
 
 def is_folder_empty(path):
     return not any(os.scandir(path))
+
+
+def create_folders_if_needed():
+    if not exists_folder(RESULTS_PATH):
+        create_folder(RESULTS_PATH)
+        create_folder(RESULTS_PPO)
+        create_folder(RESULTS_SAC)
+        
+    if not exists_folder(WEIGHTS_PATH):
+        create_folder(WEIGHTS_PATH)
+        create_folder(WEIGHTS_PPO)
+        create_folder(WEIGHTS_SAC)

@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import deque
-from constants.constants import ENVIRONMENT, PPO_NAME, RESULTS_PATH
+from constants.constants import ENVIRONMENT, PPO_NAME, RESULTS_PATH, RESULTS_PPO
 
 
 class TrainResults:
@@ -42,7 +42,7 @@ class TrainResults:
         plt.ylabel('Episode Reward')
         plt.legend()
         plt.tight_layout()
-        plt.savefig(f'{RESULTS_PATH}episode_rewards.png')
+        plt.savefig(f'{RESULTS_PPO}episode_rewards.png')
         plt.close()
 
 
@@ -54,11 +54,11 @@ class TrainResults:
         plt.plot(means, label='mean')
         plt.fill_between(range(means.shape[0]), means-stds, means+stds, alpha=0.3, label='mean+-std')
         plt.title(f'{model_title_name} loss evolution on {ENVIRONMENT} using {PPO_NAME}')
-        plt.xlabel('Episode')
+        plt.xlabel('Iteration')
         plt.ylabel(f'{model_title_name} Loss')
         plt.legend()
         plt.tight_layout()
-        plt.savefig(f'{RESULTS_PATH}{model_fig_name}_loss.png')
+        plt.savefig(f'{RESULTS_PPO}{model_fig_name}_loss.png')
         plt.close()
 
 

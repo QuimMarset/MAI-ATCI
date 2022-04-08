@@ -35,7 +35,7 @@ def train_experiment(env: MultiEnvironmentManager, agent: PPOAgent, results_plot
 
                     last_100_average = results_plotter.get_last_100_avg_reward()
                     
-                    print(f'Iteration {iteration}/{iterations}: Episode {episode_index}, Env {index}, Reward: {episode_reward},' + 
+                    print(f'Iteration {iteration}/{iterations}: Episode {episode_index}, Env {index}, Reward: {episode_reward:.2f},' + 
                         f' Last 100 Average: {last_100_average:.2f}')
 
                     episode_index += 1
@@ -43,11 +43,11 @@ def train_experiment(env: MultiEnvironmentManager, agent: PPOAgent, results_plot
                     if iteration > 0 and iteration%100 == 0:
                         if last_100_average >= best_avg_reward:
                             best_avg_reward = last_100_average
-                            agent.save_models(WEIGHTS_PATH)
+                            agent.save_models(WEIGHTS_PPO)
                     
                     episode_rewards[index] = 0
         
-        train_metrics = agent.train(BATCH_SIZE, states, iteration, iterations)
+        train_metrics = agent.train(PPO_BATCH_SIZE, states, iteration, iterations)
         results_plotter.add_metrics_info(train_metrics)
 
     return best_avg_reward, episode_index

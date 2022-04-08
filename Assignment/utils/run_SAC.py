@@ -1,6 +1,6 @@
 import numpy as np
 from environments.environment import Environment
-from utils.results_plotter import TrainResults
+from utils.results_plotter_SAC import TrainResults
 from constants.constants import *
 from SAC.SAC_agent import SACAgent
 
@@ -24,7 +24,7 @@ def train_experiment(env: Environment, agent: SACAgent, results_plotter: TrainRe
 
         agent.store_transition(state, action, reward, done, next_state)
         
-        next_state = state
+        state = next_state
 
         if done:
             state = env.start()
@@ -36,7 +36,7 @@ def train_experiment(env: Environment, agent: SACAgent, results_plotter: TrainRe
 
         if step >= START_UPDATING and step%UPDATE_EVERY == 0:
             train_metrics = {}
-            train_metrics = agent.train(BATCH_SIZE)
+            train_metrics = agent.train(SAC_BATCH_SIZE)
             results_plotter.add_train_info(train_metrics)
 
         if step > 0 and step%STEPS_PER_EPOCH == 0:
@@ -45,7 +45,7 @@ def train_experiment(env: Environment, agent: SACAgent, results_plotter: TrainRe
             last_100_avg_reward = results_plotter.get_last_100_avg_reward()
             if last_100_avg_reward >= best_avg_reward:
                 best_avg_reward = last_100_avg_reward
-                agent.save_models_weights(WEIGHTS_PATH)
+                agent.save_models_weights(WEIGHTS_SAC)
 
     return episode_index, best_avg_reward
 

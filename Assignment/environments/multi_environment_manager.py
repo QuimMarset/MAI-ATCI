@@ -6,12 +6,14 @@ class EnvironmentWrapper(Process):
 
     def __init__(self, env_index, pipe_end, env_function, **env_params):
         super().__init__()
-        self.env = env_function(**env_params)
+        self.env_function = env_function
+        self.env_params = env_params
         self.env_index = env_index
         self.pipe_end = pipe_end
 
 
     def run(self):
+        self.env = self.env_function(**self.env_params)
         super().run()
         state = self.env.start()
         self.pipe_end.send(state)
@@ -33,6 +35,7 @@ class MultiEnvironmentManager:
         self.pipes_main = []
         self.pipes_subprocess = []
         self.envs = []
+        self.configure_spaces(env_function, **env_params) 
 
         for i in range(num_envs):
             pipe_main, pipe_subprocess = Pipe()
@@ -42,8 +45,6 @@ class MultiEnvironmentManager:
             self.pipes_main.append(pipe_main)
             self.pipes_subprocess.append(pipe_subprocess)
             self.envs.append(env)
-
-            self.configure_spaces(env_function, **env_params) 
 
 
     def configure_spaces(self, env_function, **env_params):
