@@ -1,68 +1,78 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import deque
-from constants.constants import ENVIRONMENT, PPO_NAME, RESULTS_PATH, RESULTS_PPO
+import os
+from constants.constants_general import ENVIRONMENT, TRAIN_EXPERIMENTS, TRAIN_EPISODES
+from constants.constants_PPO import ALGORITHM, ITERATIONS
 
 
 class TrainResults:
 
-    def __init__(self, num_experiments):
-
-        self.num_episodes = 0
-        self.current_experiment = 0
+    def __init__(self, results_path):
+        self.episode = 0
+        self.experiment = 0
+        self.iteration = 0
+        self.results_path = results_path
 
         self.last_episodes_reward = deque(maxlen=100)
-        self.experiments_avg_reward = [[] for _ in range(num_experiments)]
+        self.experiments_avg_reward = np.zeros((TRAIN_EXPERIMENTS, TRAIN_EPISODES))
 
-        self.experiments_actor_loss = [[] for _ in range(num_experiments)]
-        self.experiments_critic_loss = [[] for _ in range(num_experiments)]
+        self.experiments_actor_loss = np.zeros((TRAIN_EXPERIMENTS, ITERATIONS))
+        self.experiments_critic_loss = np.zeros((TRAIN_EXPERIMENTS, ITERATIONS))
+
+        self.experiment_iterations = np.zeros(TRAIN_EXPERIMENTS, dtype=int)
 
 
     def add_episode_info(self, episode_reward):
         self.last_episodes_reward.append(episode_reward)
-        self.experiments_avg_reward[self.current_experiment].append(np.mean(self.last_episodes_reward))
-        self.num_episodes += 1
+        self.experiments_avg_reward[self.experiment, self.episode] = np.mean(self.last_episodes_reward)
+        self.episode += 1
 
 
     def add_metrics_info(self, train_metrics):
         if train_metrics:
-            self.experiments_actor_loss[self.current_experiment].append(train_metrics['actor_loss'])
-            self.experiments_critic_loss[self.current_experiment].append(train_metrics['critic_loss'])
+            self.experiments_actor_loss[self.experiment, self.iteration] = train_metrics['actor_loss']
+            self.experiments_critic_loss[self.experiment, self.iteration] = train_metrics['critic_loss']
+        self.iteration += 1
 
 
     def _plot_rewards_results(self):
-        means = np.mean(self.experiments_avg_reward, axis=0)
-        stds = np.std(self.experiments_avg_reward, axis=0)
-
-        plt.figure(figsize=(7, 5))
-        plt.plot(means, label='mean')
-        plt.fill_between(range(means.shape[0]), means-stds, means+stds, alpha=0.3, label='mean+-std')
-        plt.title(f'Last 100 episodes average reward on {ENVIRONMENT} using {PPO_NAME}')
-        plt.xlabel('Episode')
-        plt.ylabel('Episode Reward')
-        plt.legend()
-        plt.tight_layout()
-        plt.savefig(f'{RESULTS_PPO}episode_rewards.png')
-        plt.close()
-
-
-    def _plot_losses_results(self, data, model_title_name, model_fig_name):
+        data = self.experiments_avg_reward[:self.experiment+1]
         means = np.mean(data, axis=0)
         stds = np.std(data, axis=0)
 
         plt.figure(figsize=(7, 5))
         plt.plot(means, label='mean')
         plt.fill_between(range(means.shape[0]), means-stds, means+stds, alpha=0.3, label='mean+-std')
-        plt.title(f'{model_title_name} loss evolution on {ENVIRONMENT} using {PPO_NAME}')
+        plt.title(f'Last 100 episodes average reward on {ENVIRONMENT} using {ALGORITHM}')
+        plt.xlabel('Episode')
+        plt.ylabel('Episode Reward')
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(os.path.join(self.results_path, 'episode_rewards.png'))
+        plt.close()
+
+
+    def _plot_losses_results(self, data, model_title_name, model_fig_name):
+        end_iteration = min(np.max(self.experiment_iterations), ITERATIONS) 
+        data = data[:self.experiment+1, :end_iteration]
+        means = np.mean(data, axis=0)
+        stds = np.std(data, axis=0)
+
+        plt.figure(figsize=(7, 5))
+        plt.plot(means, label='mean')
+        plt.fill_between(range(means.shape[0]), means-stds, means+stds, alpha=0.3, label='mean+-std')
+        plt.title(f'{model_title_name} loss evolution on {ENVIRONMENT} using {ALGORITHM}')
         plt.xlabel('Iteration')
         plt.ylabel(f'{model_title_name} Loss')
         plt.legend()
         plt.tight_layout()
-        plt.savefig(f'{RESULTS_PPO}{model_fig_name}_loss.png')
+        plt.savefig(os.path.join(self.results_path, f'{model_fig_name}_loss.png'))
         plt.close()
 
 
     def plot_results(self):
+        self.experiment_iterations[self.experiment] = self.iteration
         self._plot_rewards_results()
         self._plot_losses_results(self.experiments_actor_loss, 'Actor', 'actor')
         self._plot_losses_results(self.experiments_critic_loss, 'Critic', 'critic')
@@ -73,5 +83,7 @@ class TrainResults:
 
 
     def end_experiment(self):
-        self.current_experiment += 1
+        self.episode = 0
+        self.iteration = 0
+        self.experiment += 1
         self.last_episodes_reward.clear()
