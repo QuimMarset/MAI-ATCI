@@ -28,7 +28,7 @@ class PPOBuffer:
         self.pointer = (self.pointer + 1)%self.buffer_size
 
 
-    def __discount(self, values, discount_factor, bootstrapped_values=0):
+    def discount(self, values, discount_factor, bootstrapped_values=0):
         next_values = bootstrapped_values
         for i in reversed(range(values.shape[1])):
             values[:, i] = values[:, i] + discount_factor*next_values*(1 - self.terminals[:, i])
@@ -36,16 +36,16 @@ class PPOBuffer:
         return values
 
 
-    def __compute_returns(self, bootstrapped_values):
+    def compute_returns(self, bootstrapped_values):
         rewards_copy = np.copy(self.rewards)
-        returns = self.__discount(rewards_copy, self.gamma, bootstrapped_values)
+        returns = self.discount(rewards_copy, self.gamma, bootstrapped_values)
         return np.reshape(returns, (-1))
 
 
-    def __compute_advantages(self, bootstrapped_values):
+    def compute_advantages(self, bootstrapped_values):
         values = np.append(self.values, np.expand_dims(bootstrapped_values, axis=-1), axis=-1)
         td_errors = self.rewards + self.gamma*values[:, 1:]*(1 - self.terminals) - values[:, :-1]
-        advantages = self.__discount(td_errors, self.gamma*self.gae_lambda)
+        advantages = self.discount(td_errors, self.gamma*self.gae_lambda)
 
         advantages = np.reshape(advantages, (-1))
         advantages = (advantages - np.mean(advantages))/(np.std(advantages) + 1e-8)
@@ -60,8 +60,8 @@ class PPOBuffer:
     def get_transitions(self, bootstrapped_values):
         states = np.reshape(self.states, (-1, *self.state_shape))
         actions = np.reshape(self.actions, (-1, *self.actions.shape[2:]))
-        returns = self.__compute_returns(bootstrapped_values)
-        advantages = self.__compute_advantages(bootstrapped_values)
+        returns = self.compute_returns(bootstrapped_values)
+        advantages = self.compute_advantages(bootstrapped_values)
         action_log_probs = np.reshape(self.actions_log_prob, (-1))
         values = np.reshape(self.values, (-1))
         return states, actions, returns, advantages, action_log_probs, values

@@ -1,5 +1,6 @@
 import os
-from constants.constants import PPO_NAME, SAC_NAME, RESULTS_PATH, RESULTS_PPO, RESULTS_SAC, WEIGHTS_PATH, WEIGHTS_PPO, WEIGHTS_SAC
+from constants import constants_PPO, constants_SAC
+from constants.constants_general import ENVIRONMENT
 
 
 def user_input_mode():
@@ -17,8 +18,8 @@ def user_input_mode():
 def user_input_algorithm():
     option = -1
     while option not in [1, 2]:
-        option = int(input(f'1: {PPO_NAME}\n'
-                    + f'2: {SAC_NAME}\n'))
+        option = int(input(f'1: {constants_PPO.ALGORITHM}\n'
+                    + f'2: {constants_SAC.ALGORITHM}\n'))
 
         if option not in [1, 2]:
             print("Invalid option\n")
@@ -39,12 +40,13 @@ def is_folder_empty(path):
 
 
 def create_folders_if_needed():
-    if not exists_folder(RESULTS_PATH):
-        create_folder(RESULTS_PATH)
-        create_folder(RESULTS_PPO)
-        create_folder(RESULTS_SAC)
-        
-    if not exists_folder(WEIGHTS_PATH):
-        create_folder(WEIGHTS_PATH)
-        create_folder(WEIGHTS_PPO)
-        create_folder(WEIGHTS_SAC)
+    results_path = os.path.join(constants_PPO.RESULTS_PATH, ENVIRONMENT)
+    weights_path = os.path.join(constants_PPO.WEIGHTS_PATH, ENVIRONMENT)
+
+    if not os.path.exists(results_path):
+        os.makedirs(results_path, exist_ok=True)
+
+    if not os.path.exists(weights_path):
+        os.makedirs(weights_path, exist_ok=True)
+
+    return results_path, weights_path

@@ -1,4 +1,4 @@
-from constants.constants import ENVIRONMENT
+from constants.constants_general import ENVIRONMENT
 import gym
 import random
 
@@ -17,6 +17,8 @@ class Environment:
 
     
     def step(self, action):
+        if self.render:
+            self.env.render()
         next_state, reward, terminal, _ = self.env.step(action)
         return next_state, reward*self.reward_scale, terminal
 

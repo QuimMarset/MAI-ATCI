@@ -7,16 +7,16 @@ if __name__ == "__main__":
     is_train_mode = user_input_mode()
     is_PPO = user_input_algorithm() 
 
-    create_folders_if_needed()
+    results_path, weights_path = create_folders_if_needed()
 
     if is_PPO:
         train_function = run_PPO.train_agent
         test_function = run_PPO.test_agent
     else:
-        train_function = run_SAC.train_agent
-        test_function = run_SAC.test_agent
+        train_function = run_PPO.train_agent
+        test_function = run_PPO.test_agent
 
     if is_train_mode:
-        train_function()
+        train_function(results_path, weights_path)
     else:
         test_function(render=True)

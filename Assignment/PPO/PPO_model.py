@@ -1,7 +1,5 @@
-import os
 import tensorflow as tf
-from tensorflow import keras
-from PPO.PPO_actor_critic import Actor, Critic
+from PPO.PPO_actor_critic import Actor, Critic, ActorCritic
 from utils.utils import is_folder_empty, exists_folder
 
 
@@ -17,11 +15,11 @@ class PPOModel:
 
 
     @classmethod
-    def test(cls, model_path, state_size, action_space):
+    def test(cls, model_path, state_shape, action_space):
         (action_size, min_action, max_action) = action_space
         model = cls.__new__(cls)
-        model.actor = Actor.test(state_size, action_size, min_action, max_action)
-        model.critic = Critic.test(state_size)
+        model.actor = Actor.test(state_shape, action_size, min_action, max_action)
+        model.critic = Critic.test(state_shape)
         model.load_models(model_path)
         return model
 
@@ -30,6 +28,12 @@ class PPOModel:
         actions, actions_log_prob = self.actor(states)
         state_values = self.critic(states)
         return actions.numpy(), actions_log_prob.numpy(), state_values.numpy()
+
+
+    def test_forward(self, state):
+        state = tf.expand_dims(state, axis=0)
+        action, _ = self.actor(state)
+        return tf.squeeze(action, axis=0)
 
 
     def apply_annealing(self, annealing_fraction):
@@ -42,7 +46,6 @@ class PPOModel:
         with tape:
             actions_log_prob = self.actor.call_update(states, actions)
             ratios = tf.exp(actions_log_prob - actions_old_log_prob)
-
             clip_surrogate = tf.clip_by_value(ratios, 1-self.epsilon, 1+self.epsilon)*advantages
             actor_loss = -tf.reduce_mean(tf.minimum(ratios*advantages, clip_surrogate))
 
@@ -62,25 +65,24 @@ class PPOModel:
             critic_loss_clipped = (returns - state_values_clipped)**2
             
             critic_loss = 0.5 * tf.reduce_mean(tf.maximum(critic_loss_clipped, critic_loss_unclipped))
-        
+
         return critic_loss
 
 
     def update_actor(self, states, actions, actions_log_prob, advantages):
         tape = tf.GradientTape()
-
         loss, kl_diverg = self.compute_actor_loss(tape, states, actions, actions_log_prob, advantages)
         trainable_variables = self.actor.trainable_variables()
         gradients = tape.gradient(loss, trainable_variables)
 
         has_nans = tf.reduce_any([tf.reduce_any(tf.math.is_nan(grad)) for grad in gradients])
         if has_nans:
-            print("NANs!")
+            print("Actor NANs!")
             print(loss)
 
         self.actor.update(gradients)
         return loss.numpy(), kl_diverg.numpy()
-
+ 
 
     def update_critic(self, states, returns, state_values):
         tape = tf.GradientTape()
@@ -101,7 +103,7 @@ class PPOModel:
     def update_models(self, states, actions, actions_log_prob, advantages, returns, state_values):
         actor_loss, kl_diverg = self.update_actor(states, actions, actions_log_prob, advantages)
         critic_loss = self.update_critic(states, returns, state_values)
-        return actor_loss, kl_diverg, critic_loss
+        return actor_loss, critic_loss, kl_diverg
         
 
     def load_models(self, path):

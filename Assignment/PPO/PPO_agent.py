@@ -16,15 +16,19 @@ class PPOAgent:
 
     
     @classmethod
-    def test(cls, path, state_size, action_space):
+    def test(cls, path, state_shape, action_space):
         agent = cls.__new__(cls)
-        agent.model = PPOModel.test(path, state_size, action_space)
+        agent.model = PPOModel.test(path, state_shape, action_space)
         return agent
 
 
     def step(self, states):
         self.last_actions, self.last_actions_log_prob, self.last_values = self.model.forward(states)
         return self.last_actions
+
+
+    def test_step(self, state):
+        return self.model.test_forward(state)
 
 
     def store_transitions(self, states, rewards, terminals):
@@ -42,7 +46,7 @@ class PPOAgent:
         num_batches = int(np.ceil(num_transitions/batch_size))
 
         annealing_fraction = 1 - current_iteration/total_iterations
-        self.model.apply_annealing(annealing_fraction) 
+        #self.model.apply_annealing(annealing_fraction) 
 
         for _ in range(self.epochs):
 
@@ -54,10 +58,17 @@ class PPOAgent:
                 end_index = start_index+batch_size if start_index+batch_size < num_transitions else num_transitions
                 indices_batch = indices[start_index:end_index]
 
-                actor_loss, critic_loss, kl_divergence = self.model.update_models(states[indices_batch], 
-                    actions[indices_batch], advantages[indices_batch], returns[indices_batch], 
-                    actions_log_prob[indices_batch], values[indices_batch])
+                batch_states = states[indices_batch]
+                batch_actions = actions[indices_batch]
+                batch_log_probs = actions_log_prob[indices_batch]
+                batch_advantages = advantages[indices_batch]
+                batch_returns = returns[indices_batch]
+                batch_values = values[indices_batch]
 
+                train_metrics = self.model.update_models(batch_states, batch_actions, batch_log_probs, batch_advantages, 
+                    batch_returns, batch_values)
+        
+        (actor_loss, critic_loss, kl_divergence) = train_metrics
         return {'actor_loss': actor_loss, 'critic_loss': critic_loss, 'kl_divergence': kl_divergence}
 
 
@@ -65,5 +76,5 @@ class PPOAgent:
         self.model.load_models(path)
 
 
-    def save_models(self, path):
+    def save_model(self, path):
         self.model.save_models(path)

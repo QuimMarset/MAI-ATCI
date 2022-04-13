@@ -1,7 +1,8 @@
 import numpy as np
 from environments.environment import Environment
 from utils.results_plotter_SAC import TrainResults
-from constants.constants import *
+from constants.constants_SAC import *
+from constants.constants_general import TRAIN_EXPERIMENTS, TEST_EPISODES
 from SAC.SAC_agent import SACAgent
 
 
@@ -36,7 +37,7 @@ def train_experiment(env: Environment, agent: SACAgent, results_plotter: TrainRe
 
         if step >= START_UPDATING and step%UPDATE_EVERY == 0:
             train_metrics = {}
-            train_metrics = agent.train(SAC_BATCH_SIZE)
+            train_metrics = agent.train(BATCH_SIZE)
             results_plotter.add_train_info(train_metrics)
 
         if step > 0 and step%STEPS_PER_EPOCH == 0:
@@ -45,7 +46,7 @@ def train_experiment(env: Environment, agent: SACAgent, results_plotter: TrainRe
             last_100_avg_reward = results_plotter.get_last_100_avg_reward()
             if last_100_avg_reward >= best_avg_reward:
                 best_avg_reward = last_100_avg_reward
-                agent.save_models_weights(WEIGHTS_SAC)
+                agent.save_models_weights(WEIGHTS_PATH)
 
     return episode_index, best_avg_reward
 
@@ -56,9 +57,9 @@ def train_agent():
     action_space = env.get_action_space()
     action_space_info = (action_space.shape, action_space.low, action_space.high)
     
-    agent = SACAgent(LEARNING_RATE, GRADIENT_CLIPPING, state_shape, action_space_info, SAC_BUFFER_SIZE, GAMMA, TAU, ALPHA)
+    agent = SACAgent(LEARNING_RATE, GRADIENT_CLIPPING, state_shape, action_space_info, BUFFER_SIZE, GAMMA, TAU, ALPHA)
 
-    total_steps = SAC_EPOCHS * STEPS_PER_EPOCH
+    total_steps = EPOCHS * STEPS_PER_EPOCH
     episode_index = 0
     best_avg_reward = -100000
 
