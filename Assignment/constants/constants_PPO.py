@@ -19,21 +19,21 @@ WEIGHTS_PATH = f'{BASE_WEIGHTS_PATH}/{ALGORITHM}/'
 # =======================
 
 # Multi-environment training
-NUM_ENVS = 6
+NUM_ENVS = 5
 
 # =======================
 # Agent constants
 # =======================
 
 LEARNING_RATE = 1e-4
-GRADIENT_CLIPPING = 0.8
+GRADIENT_CLIPPING = 0.5
 GAMMA = 0.99
 
 BUFFER_SIZE = 512
 # Generalized advantage estimator
 GAE_LAMBDA = 0.95
 # Clipped surrogate objective
-EPSILON = 0.2
+EPSILON = 0.1
 # Maximum KL-Divergence (used to stop gradient backpropagation)
 MAX_KL_DIVERG = 0.03
 

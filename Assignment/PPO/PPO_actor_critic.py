@@ -13,6 +13,9 @@ class Actor:
         self.min_action = min_action
         self.max_action = max_action
         self.create_model(state_shape, action_size)
+        
+        self.log_stds = -0.5 * np.ones(action_size, np.float32)
+        self.stds = np.exp(self.log_stds)
 
 
     @classmethod
@@ -26,29 +29,31 @@ class Actor:
 
     def create_model(self, state_shape, action_size):
         state_input = keras.Input(state_shape)
-        dense_1_out = keras.layers.Dense(units = 128, activation = 'relu')(state_input)
-        drop_1 = keras.layers.Dropout(0.3)(dense_1_out)
-        dense_2_out = keras.layers.Dense(units = 256, activation = 'relu')(drop_1)
-        drop_2 = keras.layers.Dropout(0.3)(dense_2_out)
-        mean = keras.layers.Dense(units = action_size, activation = 'tanh')(drop_2)
-        log_std = keras.layers.Dense(units = action_size, activation = 'tanh')(drop_2)
 
-        self.model = keras.Model(state_input, [mean, log_std])
+        dense_1 = keras.layers.Dense(512, activation = 'relu')(state_input)
+        batch_1 = keras.layers.BatchNormalization()(dense_1)
+        dense_2 = keras.layers.Dense(256, activation = 'relu')(batch_1)
+        batch_2 = keras.layers.BatchNormalization()(dense_2)
+        dense_3 = keras.layers.Dense(64, activation = 'relu')(batch_2)
+        batch_3 = keras.layers.BatchNormalization()(dense_3)
+
+        mean = keras.layers.Dense(units = action_size, activation = 'tanh')(batch_3)
+        #log_std = keras.layers.Dense(units = action_size, activation = 'tanh')(batch_3)
+
+        self.model = keras.Model(state_input, mean)
 
     
-    def gaussian_log_likelihood(self, actions, mus, log_stds):
-        stds = tf.exp(log_stds)
-        pre_sum = -0.5 * (((actions - mus)/(stds + 1e-8))**2 + 2*log_stds + tf.math.log(2*np.pi))
+    def gaussian_log_likelihood(self, actions, mus):
+        pre_sum = -0.5 * (((actions - mus)/(self.stds + 1e-8))**2 + 2*self.log_stds + tf.math.log(2*np.pi))
         return tf.reduce_sum(pre_sum, axis=-1)
 
 
     def compute_actions(self, states):
-        mus, log_stds = self.model(states)
-        stds = tf.exp(log_stds)
+        mus = self.model(states)
 
-        actions = mus + tf.random.normal(mus.shape)*stds
+        actions = mus + tf.random.normal(mus.shape)*self.stds
         actions = tf.clip_by_value(actions, self.min_action, self.max_action)
-        log_probs = self.gaussian_log_likelihood(actions, mus, log_stds)
+        log_probs = self.gaussian_log_likelihood(actions, mus)
 
         mus = tf.clip_by_value(mus, self.min_action, self.max_action)
 
@@ -61,8 +66,8 @@ class Actor:
 
 
     def call_update(self, states, actions):
-        mus, log_stds = self.model(states)
-        log_prob_actions = self.gaussian_log_likelihood(actions, mus, log_stds)
+        mus = self.model(states)
+        log_prob_actions = self.gaussian_log_likelihood(actions, mus)
         return log_prob_actions
 
 
@@ -111,11 +116,15 @@ class Critic:
 
     def create_model(self, state_shape):
         state_input = keras.Input(state_shape)
-        dense_1_out = keras.layers.Dense(units = 128, activation = 'relu')(state_input)
-        drop_1 = keras.layers.Dropout(0.3)(dense_1_out)
-        dense_2_out = keras.layers.Dense(units = 256, activation = 'relu')(drop_1)
-        drop_2 = keras.layers.Dropout(0.3)(dense_2_out)
-        v_value = keras.layers.Dense(units = 1, activation = 'linear')(drop_2)
+
+        dense_1 = keras.layers.Dense(512, activation = 'relu')(state_input)
+        batch_1 = keras.layers.BatchNormalization()(dense_1)
+        dense_2 = keras.layers.Dense(256, activation = 'relu')(batch_1)
+        batch_2 = keras.layers.BatchNormalization()(dense_2)
+        dense_3 = keras.layers.Dense(64, activation = 'relu')(batch_2)
+        batch_3 = keras.layers.BatchNormalization()(dense_3)
+
+        v_value = keras.layers.Dense(units = 1, activation = 'linear')(batch_3)
 
         self.model = keras.Model(state_input, v_value)
 

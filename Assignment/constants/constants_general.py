@@ -3,7 +3,7 @@
 # Names constants
 # =======================
 
-ENVIRONMENT = "BipedalWalkerHardcore-v3"
+ENVIRONMENT = "BipedalWalker-v3"
 
 # =======================
 # Paths constants
