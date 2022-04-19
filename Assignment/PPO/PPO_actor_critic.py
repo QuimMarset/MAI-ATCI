@@ -181,14 +181,16 @@ class ActorCritic:
     def create_model(self, state_shape, action_size):
         state_input = keras.Input(state_shape)
 
-        dense_1 = keras.layers.Dense(64, activation="relu")(state_input)
+        dense_1 = keras.layers.Dense(512, activation = 'relu')(state_input)
         batch_1 = keras.layers.BatchNormalization()(dense_1)
-        dense_2 = keras.layers.Dense(128, activation="relu")(batch_1)
+        dense_2 = keras.layers.Dense(256, activation = 'relu')(batch_1)
         batch_2 = keras.layers.BatchNormalization()(dense_2)
-        dense_3 = keras.layers.Dense(256, activation="relu")(batch_2)
+        dense_3 = keras.layers.Dense(64, activation = 'relu')(batch_2)
+        batch_3 = keras.layers.BatchNormalization()(dense_3)
 
-        mu = keras.layers.Dense(units=action_size, activation='tanh')(dense_3)
-        v_value = keras.layers.Dense(units=1, activation='linear')(dense_3)
+
+        mu = keras.layers.Dense(units=action_size, activation='tanh')(batch_3)
+        v_value = keras.layers.Dense(units=1, activation='linear')(batch_3)
 
         self.model = keras.Model(state_input, [mu, v_value])
 

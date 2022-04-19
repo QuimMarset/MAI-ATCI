@@ -13,17 +13,17 @@ class EnvironmentWrapper(Process):
 
 
     def run(self):
-        self.env = self.env_function(**self.env_params)
         super().run()
-        state = self.env.start()
+        env = self.env_function(**self.env_params)
+        state = env.start()
         self.pipe_end.send(state)
 
         while True:
             action = self.pipe_end.recv()
-            state, reward, done = self.env.step(action)
+            state, reward, done = env.step(action)
 
             if done:
-                state = self.env.start()
+                state = env.start()
             
             self.pipe_end.send([state, reward, done])
 

@@ -19,7 +19,7 @@ WEIGHTS_PATH = f'{BASE_WEIGHTS_PATH}/{ALGORITHM}/'
 # =======================
 
 # Multi-environment training
-NUM_ENVS = 5
+NUM_ENVS = 8
 
 # =======================
 # Agent constants
@@ -33,15 +33,16 @@ BUFFER_SIZE = 512
 # Generalized advantage estimator
 GAE_LAMBDA = 0.95
 # Clipped surrogate objective
-EPSILON = 0.1
+EPSILON = 0.2
 # Maximum KL-Divergence (used to stop gradient backpropagation)
 MAX_KL_DIVERG = 0.03
+# Batch epochs
+EPOCHS = 10
 
 # =======================
 # Train constants
 # =======================
 
 BATCH_SIZE = 512
-EPOCHS = 10
 ITERATIONS = 2000
 ITERATION_STEPS = BUFFER_SIZE
