@@ -46,7 +46,7 @@ class PPOAgent:
         num_batches = int(np.ceil(num_transitions/batch_size))
 
         annealing_fraction = 1 - current_iteration/total_iterations
-        #self.model.apply_annealing(annealing_fraction) 
+        self.model.apply_annealing(annealing_fraction) 
 
         for _ in range(self.epochs):
 

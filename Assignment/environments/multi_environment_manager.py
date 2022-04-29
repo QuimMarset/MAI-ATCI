@@ -6,46 +6,47 @@ class EnvironmentWrapper(Process):
 
     def __init__(self, env_index, pipe_end, env_function, **env_params):
         super().__init__()
-        self.env_function = env_function
-        self.env_params = env_params
+        self.env = env_function(**env_params)
         self.env_index = env_index
         self.pipe_end = pipe_end
 
 
     def run(self):
         super().run()
-        env = self.env_function(**self.env_params)
-        state = env.start()
-        self.pipe_end.send(state)
 
         while True:
             action = self.pipe_end.recv()
-            state, reward, done = env.step(action)
 
-            if done:
-                state = env.start()
-            
-            self.pipe_end.send([state, reward, done])
+            if action is None:
+                state = self.env.start()
+                self.pipe_end.send(state)
+
+            else:
+                state, reward, done = self.env.step(action)
+                if done:
+                    state = self.env.start()
+                self.pipe_end.send([state, reward, done])
 
 
 class MultiEnvironmentManager:
 
     def __init__(self, env_function, num_envs, **env_params):
         self.num_envs = num_envs
-        self.env_function = env_function
-        self.env_params = env_params
-        
         self.pipes_main = []
         self.pipes_subprocess = []
         self.envs = []
 
-        self.configure_spaces(env_function, **env_params) 
-
-        for _ in range(num_envs):
+        for i in range(num_envs):
             pipe_main, pipe_subprocess = Pipe()
+            env = EnvironmentWrapper(i, pipe_subprocess, env_function, **env_params)
+            env.start()
+            
             self.pipes_main.append(pipe_main)
             self.pipes_subprocess.append(pipe_subprocess)
-            
+            self.envs.append(env)
+
+            self.configure_spaces(env_function, **env_params) 
+
 
     def configure_spaces(self, env_function, **env_params):
         temp_env = env_function(**env_params)
@@ -58,19 +59,13 @@ class MultiEnvironmentManager:
         for env in self.envs:
             env.terminate()
             env.join()
-        self.envs.clear()
-
-
-    def create_processes(self, env_function, num_envs, **env_params):
-        for i in range(num_envs):
-            env = EnvironmentWrapper(i, self.pipes_subprocess[i], env_function, **env_params)
-            env.start()
-            self.envs.append(env)
 
 
     def start(self):
-        self.create_processes(self.env_function, self.num_envs, **self.env_params)
         states = np.zeros((self.num_envs, *self.state_shape))
+        for pipe_main in self.pipes_main:
+            pipe_main.send(None)
+
         for i in range(len(self.pipes_main)):
             states[i] = self.pipes_main[i].recv()
         return states

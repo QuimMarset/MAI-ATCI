@@ -1,9 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 from collections import deque
 import os
-from constants.constants_general import ENVIRONMENT, TRAIN_EXPERIMENTS, TRAIN_EPISODES
-from constants.constants_PPO import ALGORITHM, ITERATIONS
+from constants import ALGORITHM, ITERATIONS, ENVIRONMENT, TRAIN_EXPERIMENTS, TRAIN_EPISODES
+sns.set(style="whitegrid")
 
 
 class TrainResults:

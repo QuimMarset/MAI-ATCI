@@ -3,14 +3,23 @@
 # Names constants
 # =======================
 
-ALGORITHM = "SAC"
+ENVIRONMENT = "BipedalWalker-v3"
+# LunarLanderContinuous-v2
+ALGORITHM = "PPO"
 
 # =======================
 # Paths constants
 # =======================
 
-RESULTS_PATH = f'./results/{ALGORITHM}/'
-WEIGHTS_PATH = f'./weights/{ALGORITHM}/'
+RESULTS_PATH = f'./results/'
+WEIGHTS_PATH = f'./weights/'
+
+# =======================
+# Environment constants
+# =======================
+
+# Multi-environment training
+NUM_ENVS = 8
 
 # =======================
 # Agent constants
@@ -27,34 +36,22 @@ GAE_LAMBDA = 0.95
 EPSILON = 0.2
 # Maximum KL-Divergence (used to stop gradient backpropagation)
 MAX_KL_DIVERG = 0.03
+# Batch epochs
+EPOCHS = 10
 
 # =======================
 # Train constants
 # =======================
 
+TRAIN_EXPERIMENTS = 3
+TRAIN_EPISODES = 5000
+
 BATCH_SIZE = 512
-EPOCHS = 10
-ITERATIONS = 10000
+ITERATIONS = 2000
 ITERATION_STEPS = BUFFER_SIZE
 
 # =======================
-# Agent constants
+# Test constants
 # =======================
 
-BUFFER_SIZE = 1e6
-# Entropy-regularized objective weight
-ALPHA = 0.2
-# Polyak average update
-TAU = 0.005
-
-# =======================
-# Train constants
-# =======================
-
-BATCH_SIZE = 128
-EPOCHS = 10000
-STEPS_PER_EPOCH = 5000
-
-SAMPLING_STEPS = 1000
-UPDATE_EVERY = 50
-START_UPDATING = 1000
+TEST_EPISODES = 100

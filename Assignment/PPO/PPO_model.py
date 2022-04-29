@@ -1,5 +1,5 @@
 import tensorflow as tf
-from PPO.PPO_actor_critic import Actor, Critic, ActorCritic
+from PPO.PPO_actor_critic import Actor, Critic
 from utils.utils import is_folder_empty, exists_folder
 
 
@@ -32,12 +32,12 @@ class PPOModel:
 
     def test_forward(self, state):
         state = tf.expand_dims(state, axis=0)
-        action, _ = self.actor(state)
+        action = self.actor.call_test(state)
         return tf.squeeze(action, axis=0)
 
 
     def apply_annealing(self, annealing_fraction):
-        self.epsilon = self.original_epsilon*annealing_fraction
+        self.epsilon = self.original_epsilon * annealing_fraction
         self.actor.apply_annealing(annealing_fraction)
         self.critic.apply_annealing(annealing_fraction)
 
@@ -47,11 +47,11 @@ class PPOModel:
             actions_log_prob = self.actor.call_update(states, actions)
             ratios = tf.exp(actions_log_prob - actions_old_log_prob)
             clip_surrogate = tf.clip_by_value(ratios, 1-self.epsilon, 1+self.epsilon)*advantages
-            actor_loss = -tf.reduce_mean(tf.minimum(ratios*advantages, clip_surrogate))
-
             kl_diverg = tf.reduce_mean(actions_old_log_prob - actions_log_prob)
 
-            actor_loss = tf.where(tf.abs(kl_diverg) > self.max_kl_diverg, 
+            actor_loss = -tf.reduce_mean(tf.minimum(ratios*advantages, clip_surrogate))
+
+            actor_loss = tf.where(tf.abs(kl_diverg) >= self.max_kl_diverg, 
                 tf.stop_gradient(actor_loss), actor_loss)
 
         return actor_loss, kl_diverg

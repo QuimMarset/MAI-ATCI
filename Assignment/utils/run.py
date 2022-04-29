@@ -1,9 +1,8 @@
 import numpy as np
 from environments.environment import Environment
 from environments.multi_environment_manager import MultiEnvironmentManager
-from utils.results_plotter_PPO import TrainResults
-from constants.constants_PPO import *
-from constants.constants_general import TRAIN_EPISODES, TRAIN_EXPERIMENTS, TEST_EPISODES
+from utils.results_plotter import TrainResults
+from constants import *
 from PPO.PPO_agent import PPOAgent
 
 
@@ -38,7 +37,7 @@ def train_experiment(env: MultiEnvironmentManager, agent: PPOAgent, results_plot
                     episode_rewards[index] = 0
 
         last_100_average = results_plotter.get_last_100_avg_reward()
-        if iteration > 0 and iteration%20 == 0 or iteration == ITERATIONS-1: 
+        if iteration > 0 and iteration%5 == 0 or iteration == ITERATIONS-1: 
             if last_100_average >= best_avg_reward:
                 best_avg_reward = last_100_average
                 agent.save_model(weights_path)
@@ -57,27 +56,28 @@ def train_agent(results_path, weights_path):
     state_shape = envs.get_state_shape()
     action_space = envs.get_action_space()
     action_space_info = (action_space.shape[0], action_space.low, action_space.high)
-    
-    agent = PPOAgent(state_shape, action_space_info, BUFFER_SIZE, NUM_ENVS, GAMMA, GAE_LAMBDA, EPSILON, EPOCHS, 
-        LEARNING_RATE, GRADIENT_CLIPPING, MAX_KL_DIVERG)
 
     best_avg_reward = -100000
     results_plotter = TrainResults(results_path)
 
     for i in range(TRAIN_EXPERIMENTS):
+        agent = PPOAgent(state_shape, action_space_info, BUFFER_SIZE, NUM_ENVS, GAMMA, GAE_LAMBDA, 
+            EPSILON, EPOCHS, LEARNING_RATE, GRADIENT_CLIPPING, MAX_KL_DIVERG)
+
         best_avg_reward = train_experiment(envs, agent, results_plotter, best_avg_reward, i, weights_path)
         results_plotter.plot_results()
         results_plotter.end_experiment()
-        envs.end()
+    
+    envs.end()
 
 
-def test_agent(render=True):
+def test_agent(results_path, weights_path, render=True):
 
     env = Environment(render=render)
     state_shape = env.get_state_shape()
     action_space = env.get_action_space()
     action_space_info = (action_space.shape[0], action_space.low, action_space.high)
-    agent = PPOAgent.test(WEIGHTS_PATH, state_shape, action_space_info)
+    agent = PPOAgent.test(weights_path, state_shape, action_space_info)
 
     episode_rewards = []
 
