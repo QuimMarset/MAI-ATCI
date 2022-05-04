@@ -6,13 +6,15 @@ class EnvironmentWrapper(Process):
 
     def __init__(self, env_index, pipe_end, env_function, **env_params):
         super().__init__()
-        self.env = env_function(**env_params)
+        self.env_function = env_function
+        self.env_params = env_params
         self.env_index = env_index
         self.pipe_end = pipe_end
 
 
     def run(self):
         super().run()
+        self.env = self.env_function(**self.env_params)
 
         while True:
             action = self.pipe_end.recv()

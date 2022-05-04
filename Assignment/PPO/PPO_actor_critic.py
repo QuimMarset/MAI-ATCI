@@ -26,14 +26,16 @@ class Actor:
 
     def create_model(self, state_shape, action_size):
         state_input = keras.Input(state_shape)
-
-        dense_1_out = keras.layers.Dense(units = 128, activation = 'relu')(state_input)
-        drop_1 = keras.layers.Dropout(0.3)(dense_1_out)
-        dense_2_out = keras.layers.Dense(units = 256, activation = 'relu')(drop_1)
-        drop_2 = keras.layers.Dropout(0.3)(dense_2_out)
         
-        mean = keras.layers.Dense(units = action_size, activation = 'tanh')(drop_2)
-        log_std = keras.layers.Dense(units = action_size, activation = 'tanh')(drop_2)
+        dense_1_out = keras.layers.Dense(256)(state_input)
+        lrelu_1_out = keras.layers.LeakyReLU(0.1)(dense_1_out)
+        bn_1_out = keras.layers.BatchNormalization()(lrelu_1_out)
+        dense_2_out = keras.layers.Dense(128)(bn_1_out)
+        lrelu_2_out = keras.layers.LeakyReLU(0.1)(dense_2_out)
+        bn_2_out = keras.layers.BatchNormalization()(lrelu_2_out)
+
+        mean = keras.layers.Dense(units = action_size, activation = 'tanh')(bn_2_out)
+        log_std = keras.layers.Dense(units = action_size, activation = 'tanh')(bn_2_out)
 
         self.model = keras.Model(state_input, [mean, log_std])
 
@@ -114,12 +116,14 @@ class Critic:
     def create_model(self, state_shape):
         state_input = keras.Input(state_shape)
 
-        dense_1_out = keras.layers.Dense(units = 128, activation = 'relu')(state_input)
-        drop_1 = keras.layers.Dropout(0.3)(dense_1_out)
-        dense_2_out = keras.layers.Dense(units = 256, activation = 'relu')(drop_1)
-        drop_2 = keras.layers.Dropout(0.3)(dense_2_out)
+        dense_1_out = keras.layers.Dense(256)(state_input)
+        lrelu_1_out = keras.layers.LeakyReLU(0.1)(dense_1_out)
+        bn_1_out = keras.layers.BatchNormalization()(lrelu_1_out)
+        dense_2_out = keras.layers.Dense(128)(bn_1_out)
+        lrelu_2_out = keras.layers.LeakyReLU(0.1)(dense_2_out)
+        bn_2_out = keras.layers.BatchNormalization()(lrelu_2_out)
 
-        v_value = keras.layers.Dense(units = 1, activation = 'linear')(drop_2)
+        v_value = keras.layers.Dense(units = 1, activation = 'linear')(bn_2_out)
 
         self.model = keras.Model(state_input, v_value)
 

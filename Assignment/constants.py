@@ -26,7 +26,7 @@ NUM_ENVS = 8
 # =======================
 
 LEARNING_RATE = 1e-4
-GRADIENT_CLIPPING = 0.5
+GRADIENT_CLIPPING = 50.0
 GAMMA = 0.99
 
 BUFFER_SIZE = 512
@@ -35,7 +35,7 @@ GAE_LAMBDA = 0.95
 # Clipped surrogate objective
 EPSILON = 0.2
 # Maximum KL-Divergence (used to stop gradient backpropagation)
-MAX_KL_DIVERG = 0.03
+MAX_KL_DIVERG = 0.15
 # Batch epochs
 EPOCHS = 10
 
