@@ -23,7 +23,7 @@ def train_experiment(env: MultiEnvironmentManager, agent: PPOAgent, results_plot
 
             actions = agent.step(states)
             next_states, rewards, dones = env.step(actions)
-            episode_rewards[:] += rewards/0.01
+            episode_rewards[:] += rewards/REWARD_SCALE
             agent.store_transitions(states, rewards, dones)
             states = next_states
 
@@ -52,7 +52,7 @@ def train_experiment(env: MultiEnvironmentManager, agent: PPOAgent, results_plot
 
 
 def train_agent(results_path, weights_path):
-    envs = MultiEnvironmentManager(Environment, NUM_ENVS)
+    envs = MultiEnvironmentManager(NUM_ENVS, REWARD_SCALE)
     state_shape = envs.get_state_shape()
     action_space = envs.get_action_space()
     action_space_info = (action_space.shape[0], action_space.low, action_space.high)
@@ -69,6 +69,8 @@ def train_agent(results_path, weights_path):
         results_plotter.end_experiment()
     
     envs.end()
+    results_plotter.save_results_to_npy()
+    results_plotter.save_parameter_configuration()
 
 
 def test_agent(results_path, weights_path, render=True):
@@ -94,7 +96,7 @@ def test_agent(results_path, weights_path, render=True):
             state = next_state
 
         episode_rewards.append(total_reward)
-        print(f'Episode {i+1}/{TEST_EPISODES}: Reward: {(total_reward/0.01):.2f}')
+        print(f'Episode {i+1}/{TEST_EPISODES}: Reward: {(total_reward/REWARD_SCALE):.2f}')
 
     avg_reward = np.mean(episode_rewards)
     print(f'Avg reward of {TEST_EPISODES} episodes: {avg_reward}')

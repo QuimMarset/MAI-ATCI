@@ -7,13 +7,12 @@ class Environment:
 
     def __init__(self, reward_scale=1, render=False):
         self.env = gym.make(ENVIRONMENT)
-        self.env.seed(random.randint(0, 9999))
         self.render = render
-        self.reward_scale = 0.01
+        self.reward_scale = reward_scale
 
 
     def start(self):
-        return self.env.reset()
+        return self.env.reset(seed=random.randint(0, 9999))
 
     
     def step(self, action):

@@ -33,4 +33,12 @@ def create_needed_folders():
     os.makedirs(results_path, exist_ok=True)
     os.makedirs(weights_path, exist_ok=True)
 
+    num_subfolders = len(os.listdir(results_path))
+
+    results_path = os.path.join(results_path, f'execution_{num_subfolders+1}')
+    weights_path = os.path.join(weights_path, f'execution_{num_subfolders+1}')
+
+    os.makedirs(results_path, exist_ok=True)
+    os.makedirs(weights_path, exist_ok=True)
+
     return results_path, weights_path

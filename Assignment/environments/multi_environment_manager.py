@@ -1,38 +1,38 @@
 from multiprocessing import Process, Pipe
 import numpy as np
+from environments.environment import Environment
 
 
 class EnvironmentWrapper(Process):
 
-    def __init__(self, env_index, pipe_end, env_function, **env_params):
+    def __init__(self, env_index, pipe_end, reward_scale):
         super().__init__()
-        self.env_function = env_function
-        self.env_params = env_params
+        self.reward_scale = reward_scale
         self.env_index = env_index
         self.pipe_end = pipe_end
 
 
     def run(self):
         super().run()
-        self.env = self.env_function(**self.env_params)
+        env = Environment(self.reward_scale)
 
         while True:
             action = self.pipe_end.recv()
 
             if action is None:
-                state = self.env.start()
+                state = env.start()
                 self.pipe_end.send(state)
 
             else:
-                state, reward, done = self.env.step(action)
+                state, reward, done = env.step(action)
                 if done:
-                    state = self.env.start()
+                    state = env.start()
                 self.pipe_end.send([state, reward, done])
 
 
 class MultiEnvironmentManager:
 
-    def __init__(self, env_function, num_envs, **env_params):
+    def __init__(self, num_envs, reward_scale):
         self.num_envs = num_envs
         self.pipes_main = []
         self.pipes_subprocess = []
@@ -40,18 +40,18 @@ class MultiEnvironmentManager:
 
         for i in range(num_envs):
             pipe_main, pipe_subprocess = Pipe()
-            env = EnvironmentWrapper(i, pipe_subprocess, env_function, **env_params)
+            env = EnvironmentWrapper(i, pipe_subprocess, reward_scale)
             env.start()
             
             self.pipes_main.append(pipe_main)
             self.pipes_subprocess.append(pipe_subprocess)
             self.envs.append(env)
 
-            self.configure_spaces(env_function, **env_params) 
+            self.configure_spaces() 
 
 
-    def configure_spaces(self, env_function, **env_params):
-        temp_env = env_function(**env_params)
+    def configure_spaces(self):
+        temp_env = Environment()
         self.state_shape = temp_env.get_state_shape()
         self.action_space = temp_env.get_action_space()
         temp_env.end()

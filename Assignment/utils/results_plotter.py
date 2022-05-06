@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from collections import deque
 import os
-from constants import ALGORITHM, ITERATIONS, ENVIRONMENT, TRAIN_EXPERIMENTS, TRAIN_EPISODES
+import json
+from constants import *
 sns.set(style="whitegrid")
 
 
@@ -91,3 +92,36 @@ class TrainResults:
         self.iteration = 0
         self.experiment += 1
         self.last_episodes_reward.clear()
+
+
+    def save_results_to_npy(self):
+        path = os.path.join(self.results_path, 'train_results.npy')
+        with open(path, 'wb') as file:
+            np.save(file, self.experiments_avg_reward)
+            np.save(file, self.experiments_actor_loss)
+            np.save(file, self.experiments_critic_loss)
+            np.save(file, self.experiments_kl_divergence)
+
+    
+    def save_parameter_configuration(self):
+        params = {
+            'reward_scale' : REWARD_SCALE,
+            'num_envs' : NUM_ENVS,
+            'learning_rate' : LEARNING_RATE,
+            'grad_clipping' : GRADIENT_CLIPPING,
+            'gamma' : GAMMA,
+            'buffer_size' : BUFFER_SIZE,
+            'gae_lambda' : GAE_LAMBDA,
+            'epsilon' : EPSILON,
+            'max_kl_diverg' : MAX_KL_DIVERG,
+            'epochs' : EPOCHS,
+            'train_experiments' : TRAIN_EXPERIMENTS,
+            'train_episodes' : TRAIN_EPISODES,
+            'batch_size' : BATCH_SIZE,
+            'iterations' : ITERATIONS,
+            'iteration_steps' : ITERATION_STEPS,
+        }
+
+        path = os.path.join(self.results_path, 'parameters.json')
+        with open(path, 'w') as file:
+            json.dump(params, file)
