@@ -1,14 +1,15 @@
-from utils.utils import create_needed_folders, user_input_mode
+from utils.utils import *
 from utils.run import train_agent, test_agent
 
 
 if __name__ == "__main__":
 
     is_train_mode = user_input_mode()
-
-    results_path, weights_path = create_needed_folders()
+    env_name = user_input_environment()
 
     if is_train_mode:
-        train_agent(results_path, weights_path)
+        results_path, weights_path = create_needed_folders(env_name)
+        train_agent(results_path, weights_path, env_name)
     else:
-        test_agent(results_path, weights_path, render=True)
+        results_path, weights_path = get_last_execution_paths(env_name)
+        test_agent(results_path, weights_path, env_name, render=False)

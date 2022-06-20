@@ -1,25 +1,15 @@
 import numpy as np
-from PPO.PPO_model import PPOModel
-from PPO.PPO_buffer import PPOBuffer
+from PPO.PPO_model import DiscretePPOModel, ContinuousPPOModel
+from PPO.PPO_buffer import DiscretePPOBuffer, ContinuousPPOBuffer
+
 
 class PPOAgent:
 
-    def __init__(self, state_shape, action_space, buffer_size, num_envs, gamma, gae_lambda, epsilon, epochs, 
-        learning_rate, gradient_clipping, max_kl_diverg):
-
+    def __init__(self, epochs):
         self.epochs = epochs
-        self.buffer = PPOBuffer(buffer_size, num_envs, state_shape, action_space[0], gamma, gae_lambda)
-        self.model = PPOModel(learning_rate, gradient_clipping, state_shape, action_space, epsilon, max_kl_diverg)
         self.last_values = None
         self.last_actions = None
         self.last_actions_log_prob = None
-
-    
-    @classmethod
-    def test(cls, path, state_shape, action_space):
-        agent = cls.__new__(cls)
-        agent.model = PPOModel.test(path, state_shape, action_space)
-        return agent
 
 
     def step(self, states):
@@ -78,3 +68,37 @@ class PPOAgent:
 
     def save_model(self, path):
         self.model.save_models(path)
+
+
+class DiscretePPOAgent(PPOAgent):
+
+    def __init__(self, state_shape, num_actions, buffer_size, num_envs, gamma, gae_lambda, epsilon, epochs, 
+        learning_rate, gradient_clipping, max_kl_diverg):
+
+        super().__init__(epochs)
+        self.buffer = DiscretePPOBuffer(buffer_size, num_envs, state_shape, gamma, gae_lambda)
+        self.model = DiscretePPOModel(learning_rate, gradient_clipping, state_shape, num_actions, epsilon, max_kl_diverg)
+
+
+    @classmethod
+    def test(cls, path, state_shape, num_actions):
+        agent = cls.__new__(cls)
+        agent.model = DiscretePPOModel.test(path, state_shape, num_actions)
+        return agent
+
+
+class ContinuousPPOAgent(PPOAgent):
+
+    def __init__(self, state_shape, action_space, buffer_size, num_envs, gamma, gae_lambda, epsilon, epochs, 
+        learning_rate, gradient_clipping, max_kl_diverg):
+
+        super().__init__(epochs)
+        self.buffer = ContinuousPPOBuffer(buffer_size, num_envs, state_shape, action_space[0], gamma, gae_lambda)
+        self.model = ContinuousPPOModel(learning_rate, gradient_clipping, state_shape, action_space, epsilon, max_kl_diverg)
+
+
+    @classmethod
+    def test(cls, path, state_shape, action_space):
+        agent = cls.__new__(cls)
+        agent.model = ContinuousPPOModel.test(path, state_shape, action_space)
+        return agent

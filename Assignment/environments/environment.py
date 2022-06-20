@@ -1,12 +1,11 @@
-from constants import ENVIRONMENT
 import gym
 import random
 
 
 class Environment:
 
-    def __init__(self, reward_scale=1, render=False):
-        self.env = gym.make(ENVIRONMENT)
+    def __init__(self, env_name, reward_scale=1, render=False):
+        self.env = gym.make(env_name)
         self.render = render
         self.reward_scale = reward_scale
 
@@ -28,10 +27,6 @@ class Environment:
     
     def get_action_space(self):
         return self.env.action_space
-
-
-    def sample_action(self):
-        return self.env.action_space.sample()
 
 
     def end(self):

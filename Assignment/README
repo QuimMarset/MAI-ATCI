@@ -1,0 +1,8 @@
+To train the agents in the different environments the main.py has to be executed and follow the steps it asks on the prompt.
+The same main.py allows testing the environment with the last executed experiment (i.e. the last experiment_x folder).
+
+Also, the parameters can be changed in the constants.py file.
+To change the ViZDoom game, the constant VIZDOOM must be changed to the name of one of the delivered .cfg files.
+
+We also deliver a notebook (testing.ipynb) which contains the testing of all the environments with the different experiments we have performed
+The parameter render controls if the environment is rendered or not. By default, it is set to False.

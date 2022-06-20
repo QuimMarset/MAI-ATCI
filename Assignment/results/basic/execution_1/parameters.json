@@ -1,0 +1,1 @@
+{"reward_scale": 0.01, "num_envs": 8, "learning_rate": 0.0001, "grad_clipping": 0.5, "gamma": 0.99, "buffer_size": 512, "gae_lambda": 0.95, "epsilon": 0.2, "max_kl_diverg": 0.15, "epochs": 5, "train_experiments": 3, "train_episodes": 50000, "batch_size": 64, "iterations": 100, "iteration_steps": 512, "frames_stacked": 4, "frames_skipped": 4}

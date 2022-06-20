@@ -1,9 +1,10 @@
+from time import sleep
 import numpy as np
-from environments.environment import Environment
 from environments.multi_environment_manager import MultiEnvironmentManager
-from utils.results_plotter import TrainResults
+from utils.results_plotter import TrainResults, plot_test_results
 from constants import *
 from PPO.PPO_agent import PPOAgent
+from utils.run_utils import *
 
 
 def pretty_print_episode(experiment, episode, iteration, env, episode_reward, last_100_average):
@@ -51,18 +52,16 @@ def train_experiment(env: MultiEnvironmentManager, agent: PPOAgent, results_plot
     return best_avg_reward
 
 
-def train_agent(results_path, weights_path):
-    envs = MultiEnvironmentManager(NUM_ENVS, REWARD_SCALE)
+def train_agent(results_path, weights_path, environment_name):
+    envs = create_train_environments(environment_name)
     state_shape = envs.get_state_shape()
     action_space = envs.get_action_space()
-    action_space_info = (action_space.shape[0], action_space.low, action_space.high)
 
     best_avg_reward = -100000
-    results_plotter = TrainResults(results_path)
+    results_plotter = TrainResults(results_path, environment_name)
 
     for i in range(TRAIN_EXPERIMENTS):
-        agent = PPOAgent(state_shape, action_space_info, BUFFER_SIZE, NUM_ENVS, GAMMA, GAE_LAMBDA, 
-            EPSILON, EPOCHS, LEARNING_RATE, GRADIENT_CLIPPING, MAX_KL_DIVERG)
+        agent = create_train_agent(environment_name, state_shape, action_space)
 
         best_avg_reward = train_experiment(envs, agent, results_plotter, best_avg_reward, i, weights_path)
         results_plotter.plot_results()
@@ -73,15 +72,16 @@ def train_agent(results_path, weights_path):
     results_plotter.save_parameter_configuration()
 
 
-def test_agent(results_path, weights_path, render=True):
+def test_agent(results_path, weights_path, environment_name, render=True):
 
-    env = Environment(render=render)
+    env = create_test_environment(environment_name, render)
     state_shape = env.get_state_shape()
     action_space = env.get_action_space()
-    action_space_info = (action_space.shape[0], action_space.low, action_space.high)
-    agent = PPOAgent.test(weights_path, state_shape, action_space_info)
+    agent = create_test_agent(environment_name, state_shape, action_space, weights_path)
 
     episode_rewards = []
+
+    sleep_time = 0.05 if environment_name is VIZDOOM else 0
 
     for i in range(TEST_EPISODES):
 
@@ -95,10 +95,13 @@ def test_agent(results_path, weights_path, render=True):
             total_reward += reward
             state = next_state
 
+            sleep(sleep_time)
+
         episode_rewards.append(total_reward)
-        print(f'Episode {i+1}/{TEST_EPISODES}: Reward: {(total_reward/REWARD_SCALE):.2f}')
+        print(f'Episode {i+1}/{TEST_EPISODES}: Reward: {total_reward:.2f}')
 
     avg_reward = np.mean(episode_rewards)
     print(f'Avg reward of {TEST_EPISODES} episodes: {avg_reward}')
+    plot_test_results(episode_rewards, environment_name, results_path)
 
     env.end()

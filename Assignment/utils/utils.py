@@ -14,6 +14,23 @@ def user_input_mode():
     return option == 1
     
 
+def user_input_environment():
+    option = -1
+    while option not in [1, 2, 3]:
+        option = int(input("1: Lunar lander \
+                        \n2: Bipedal walker \
+                        \n3: VizDoom\n"))
+
+        if option == 1:
+            return LANDER
+        elif option == 2:
+            return BIPEDAL
+        elif option == 3:
+            return VIZDOOM
+        else:
+            print("Invalid option\n")
+
+
 def exists_folder(path):
     return os.path.exists(path)
 
@@ -26,9 +43,9 @@ def is_folder_empty(path):
     return not any(os.scandir(path))
 
 
-def create_needed_folders():
-    results_path = os.path.join(RESULTS_PATH, ENVIRONMENT)
-    weights_path = os.path.join(WEIGHTS_PATH, ENVIRONMENT)
+def create_needed_folders(env_name):
+    results_path = os.path.join(RESULTS_PATH, env_name)
+    weights_path = os.path.join(WEIGHTS_PATH, env_name)
 
     os.makedirs(results_path, exist_ok=True)
     os.makedirs(weights_path, exist_ok=True)
@@ -40,5 +57,17 @@ def create_needed_folders():
 
     os.makedirs(results_path, exist_ok=True)
     os.makedirs(weights_path, exist_ok=True)
+
+    return results_path, weights_path
+
+
+def get_last_execution_paths(env_name):
+    results_path = os.path.join(RESULTS_PATH, env_name)
+    weights_path = os.path.join(WEIGHTS_PATH, env_name)
+
+    last_execution = os.listdir(weights_path)[-1]
+
+    weights_path = os.path.join(weights_path, last_execution)
+    results_path = os.path.join(results_path, last_execution)
 
     return results_path, weights_path

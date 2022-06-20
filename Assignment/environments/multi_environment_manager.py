@@ -1,20 +1,20 @@
 from multiprocessing import Process, Pipe
 import numpy as np
-from environments.environment import Environment
 
 
 class EnvironmentWrapper(Process):
 
-    def __init__(self, env_index, pipe_end, reward_scale):
+    def __init__(self, env_index, pipe_end, env_function, env_params):
         super().__init__()
-        self.reward_scale = reward_scale
+        self.env_function = env_function
+        self.env_params = env_params
         self.env_index = env_index
         self.pipe_end = pipe_end
 
 
     def run(self):
         super().run()
-        env = Environment(self.reward_scale)
+        env = self.env_function(**self.env_params)
 
         while True:
             action = self.pipe_end.recv()
@@ -32,7 +32,7 @@ class EnvironmentWrapper(Process):
 
 class MultiEnvironmentManager:
 
-    def __init__(self, num_envs, reward_scale):
+    def __init__(self, num_envs, env_function, env_params):
         self.num_envs = num_envs
         self.pipes_main = []
         self.pipes_subprocess = []
@@ -40,18 +40,18 @@ class MultiEnvironmentManager:
 
         for i in range(num_envs):
             pipe_main, pipe_subprocess = Pipe()
-            env = EnvironmentWrapper(i, pipe_subprocess, reward_scale)
+            env = EnvironmentWrapper(i, pipe_subprocess, env_function, env_params)
             env.start()
             
             self.pipes_main.append(pipe_main)
             self.pipes_subprocess.append(pipe_subprocess)
             self.envs.append(env)
 
-            self.configure_spaces() 
+            self.configure_spaces(env_function, env_params) 
 
 
-    def configure_spaces(self):
-        temp_env = Environment()
+    def configure_spaces(self, env_function, env_params):
+        temp_env = env_function(**env_params)
         self.state_shape = temp_env.get_state_shape()
         self.action_space = temp_env.get_action_space()
         temp_env.end()

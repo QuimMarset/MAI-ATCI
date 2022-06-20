@@ -1,2 +1,4 @@
-
 __pycache__/
+_vizdoom/
+.vscode/
+_vizdoom.ini

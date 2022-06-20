@@ -1,27 +1,16 @@
 import tensorflow as tf
-from PPO.PPO_actor_critic import Actor, Critic
+from PPO.PPO_continuous_actor_critic import ContinuousActor, ContinuousCritic
+from PPO.PPO_discrete_actor_critic import DiscreteActor, DiscreteCritic
 from utils.utils import is_folder_empty, exists_folder
+import os
 
 
 class PPOModel:
 
-    def __init__(self, learning_rate, gradient_clipping, state_shape, action_space, epsilon, max_kl_diverg):
+    def __init__(self, epsilon, max_kl_diverg):
         self.max_kl_diverg = max_kl_diverg
         self.epsilon = epsilon
         self.original_epsilon = epsilon
-        (action_size, min_action, max_action) = action_space
-        self.actor = Actor(learning_rate, gradient_clipping, state_shape, action_size, min_action, max_action)
-        self.critic = Critic(learning_rate, gradient_clipping, state_shape)
-
-
-    @classmethod
-    def test(cls, model_path, state_shape, action_space):
-        (action_size, min_action, max_action) = action_space
-        model = cls.__new__(cls)
-        model.actor = Actor.test(state_shape, action_size, min_action, max_action)
-        model.critic = Critic.test(state_shape)
-        model.load_models(model_path)
-        return model
 
 
     def forward(self, states):
@@ -33,7 +22,7 @@ class PPOModel:
     def test_forward(self, state):
         state = tf.expand_dims(state, axis=0)
         action = self.actor.call_test(state)
-        return tf.squeeze(action, axis=0)
+        return tf.squeeze(action, axis=0).numpy()
 
 
     def apply_annealing(self, annealing_fraction):
@@ -76,9 +65,11 @@ class PPOModel:
         gradients = tape.gradient(loss, trainable_variables)
 
         has_nans = tf.reduce_any([tf.reduce_any(tf.math.is_nan(grad)) for grad in gradients])
-        if has_nans:
+        has_infs = tf.reduce_any([tf.reduce_any(tf.math.is_inf(grad)) for grad in gradients])
+        if has_nans or has_infs:
             print("Actor NANs!")
             print(loss)
+            return
 
         self.actor.update(gradients)
         return loss.numpy(), kl_diverg.numpy()
@@ -95,6 +86,7 @@ class PPOModel:
         if has_nans:
             print("Critic NANs!")
             print(loss)
+            return
 
         self.critic.update(gradients)
         return loss.numpy()
@@ -114,10 +106,46 @@ class PPOModel:
 
 
     def load_weights(self, path):
-        self.actor.load_weights(f'{path}/actor_weights')
-        self.critic.load_weights(f'{path}/critic_weights')
+        self.actor.load_weights(os.path.join(path, 'actor_weights'))
+        self.critic.load_weights(os.path.join(path, 'critic_weights'))
 
 
     def save_models(self, path):
-        self.actor.save_weights(f'{path}/actor_weights')
-        self.critic.save_weights(f'{path}/critic_weights')
+        self.actor.save_weights(os.path.join(path, 'actor_weights'))
+        self.critic.save_weights(os.path.join(path, 'critic_weights'))
+
+
+class DiscretePPOModel(PPOModel):
+
+    def __init__(self, learning_rate, gradient_clipping, state_shape, num_actions, epsilon, max_kl_diverg):
+        super().__init__(epsilon, max_kl_diverg)
+        self.actor = DiscreteActor(learning_rate, gradient_clipping, state_shape, num_actions)
+        self.critic = DiscreteCritic(learning_rate, gradient_clipping, state_shape)
+
+    
+    @classmethod
+    def test(cls, model_path, state_shape, num_actions):
+        model = cls.__new__(cls)
+        model.actor = DiscreteActor.test(state_shape, num_actions)
+        model.critic = DiscreteCritic.test(state_shape)
+        model.load_models(model_path)
+        return model
+
+
+class ContinuousPPOModel(PPOModel):
+
+    def __init__(self, learning_rate, gradient_clipping, state_shape, action_space, epsilon, max_kl_diverg):
+        super().__init__(epsilon, max_kl_diverg)
+        (action_size, min_action, max_action) = action_space
+        self.actor = ContinuousActor(learning_rate, gradient_clipping, state_shape, action_size, min_action, max_action)
+        self.critic = ContinuousCritic(learning_rate, gradient_clipping, state_shape)
+        
+
+    @classmethod
+    def test(cls, model_path, state_shape, action_space):
+        model = cls.__new__(cls)
+        (action_size, min_action, max_action) = action_space
+        model.actor = ContinuousActor.test(state_shape, action_size, min_action, max_action)
+        model.critic = ContinuousCritic.test(state_shape)
+        model.load_models(model_path)
+        return model

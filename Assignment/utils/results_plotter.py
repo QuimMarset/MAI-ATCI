@@ -8,13 +8,25 @@ from constants import *
 sns.set(style="whitegrid")
 
 
+def plot_test_results(episode_rewards, env_name, results_path):
+    plt.figure(figsize=(7, 5))
+    plt.plot(episode_rewards)
+    plt.title(f'Test episodes reward on {env_name} using {ALGORITHM}')
+    plt.xlabel('Episode')
+    plt.ylabel('Episode Reward')
+    plt.tight_layout()
+    plt.savefig(os.path.join(results_path, 'test_episode_rewards.png'))
+    plt.close()
+
+
 class TrainResults:
 
-    def __init__(self, results_path):
+    def __init__(self, results_path, env_name):
         self.episode = 0
         self.experiment = 0
         self.iteration = 0
         self.results_path = results_path
+        self.env_name = env_name
 
         self.last_episodes_reward = deque(maxlen=100)
         self.experiments_avg_reward = np.zeros((TRAIN_EXPERIMENTS, TRAIN_EPISODES))
@@ -48,7 +60,7 @@ class TrainResults:
         plt.figure(figsize=(7, 5))
         plt.plot(means, label='mean')
         plt.fill_between(range(means.shape[0]), means-stds, means+stds, alpha=0.3, label='mean+-std')
-        plt.title(f'Last 100 episodes average reward on {ENVIRONMENT} using {ALGORITHM}')
+        plt.title(f'Last 100 episodes average reward on {self.env_name} using {ALGORITHM}')
         plt.xlabel('Episode')
         plt.ylabel('Episode Reward')
         plt.legend()
@@ -66,7 +78,7 @@ class TrainResults:
         plt.figure(figsize=(7, 5))
         plt.plot(means, label='mean')
         plt.fill_between(range(means.shape[0]), means-stds, means+stds, alpha=0.3, label='mean+-std')
-        plt.title(f'{model_title_name} evolution on {ENVIRONMENT} using {ALGORITHM}')
+        plt.title(f'{model_title_name} evolution on {self.env_name} using {ALGORITHM}')
         plt.xlabel('Iteration')
         plt.ylabel(f'{model_title_name} ')
         plt.legend()
@@ -121,6 +133,10 @@ class TrainResults:
             'iterations' : ITERATIONS,
             'iteration_steps' : ITERATION_STEPS,
         }
+
+        if self.env_name is VIZDOOM:
+            params['frames_stacked'] = FRAMES_STACKED
+            params['frames_skipped'] = FRAMES_SKIPPED
 
         path = os.path.join(self.results_path, 'parameters.json')
         with open(path, 'w') as file:
